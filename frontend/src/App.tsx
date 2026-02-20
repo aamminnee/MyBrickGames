@@ -1,22 +1,16 @@
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client'; // 👈 NOUVEAU
+import { io } from 'socket.io-client';
 import GameReproduction from './pages/GameReproduction';
 
-// 👈 NOUVEAU : On se connecte au backend (en dehors des composants pour ne pas se reconnecter à chaque rendu)
 const socket = io('http://localhost:3000');
 
-// --- Composants de pages temporaires ---
-// On les déplacera dans des fichiers dédiés (dossier /pages) plus tard.
-
-// --- Nouveau composant pour le Matchmaking ---
 const Matchmaking = () => {
-  const [roomCode, setRoomCode] = useState<string>(''); // Le code généré pour le Joueur 1
-  const [joinCode, setJoinCode] = useState<string>(''); // Le code tapé par le Joueur 2
+  const [roomCode, setRoomCode] = useState<string>('');
+  const [joinCode, setJoinCode] = useState<string>('');
   const [status, setStatus] = useState<string>('En attente de connexion...');
 
   useEffect(() => {
-    // On écoute les réponses du serveur
     socket.on('room_created', (code) => {
       setRoomCode(code);
       setStatus(`Salon créé ! Partagez le code : ${code}`);
@@ -30,7 +24,6 @@ const Matchmaking = () => {
       alert(errorMsg);
     });
 
-    // Nettoyage des événements quand on quitte la page
     return () => {
       socket.off('room_created');
       socket.off('game_started');
@@ -81,7 +74,7 @@ const Home = () => (
     <h1>Bienvenue sur MyBrickGames 🧱</h1>
     <p>Jouez, gagnez des points de fidélité, et utilisez-les sur notre boutique !</p>
     
-    <Matchmaking /> {/* 👈 On intègre notre nouveau composant ici */}
+    <Matchmaking /> {/* On intègre notre nouveau composant ici */}
 
     <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '30px' }}>
         <Link to="/game/reproduction"><button style={{ padding: '10px 20px', cursor: 'pointer' }}>Jeu 1: Reproduction (Solo)</button></Link>
@@ -91,24 +84,20 @@ const Home = () => (
 );
 
 const Profile = () => {
-  // On crée des variables d'état pour stocker les données du joueur
   const [points, setPoints] = useState<number | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // On simule un identifiant qui viendrait normalement du PHP plus tard
   const fakeLoyaltyId = "CLIENT-TEST-123";
 
-  // useEffect se déclenche automatiquement quand la page s'affiche
   useEffect(() => {
-    // On appelle notre API Node.js
     fetch(`http://localhost:3000/api/player/${fakeLoyaltyId}`)
       .then((response) => {
         if (!response.ok) throw new Error("Erreur réseau");
         return response.json();
       })
       .then((data) => {
-        setPoints(data.points); // On met à jour l'affichage avec le vrai solde
+        setPoints(data.points); 
         setLoading(false);
       })
       .catch((err) => {
@@ -138,8 +127,6 @@ const Profile = () => {
 };
 
 const GameTetris = () => <h2 style={{ textAlign: 'center' }}>Jeu 2 : Casse-briques 🧱 (Bientôt)</h2>;
-
-// --- Composant Principal (Routeur) ---
 
 function App() {
   return (

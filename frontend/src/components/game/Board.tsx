@@ -3,7 +3,6 @@ import Cell from './Cell';
 interface BoardProps {
   rows: number;
   cols: number;
-  // Une matrice (tableau de tableaux) contenant les couleurs (ou null si vide)
   gridData: (string | null)[][]; 
   onCellClick?: (row: number, col: number) => void;
 }
@@ -13,13 +12,13 @@ const Board = ({ cols, gridData, onCellClick }: BoardProps) => {
     <div 
       style={{
         display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`, // Crée le bon nombre de colonnes
-        gap: '2px', // Espace entre les cases
-        backgroundColor: '#333', // Couleur de fond du plateau
+        gridTemplateColumns: `repeat(${cols}, 1fr)`, 
+        gap: '2px',
+        backgroundColor: '#333', 
         padding: '2px',
         border: '4px solid #333',
         borderRadius: '8px',
-        maxWidth: '90vw', // On limite la taille pour que ça reste beau
+        maxWidth: '90vw',
         margin: '0 auto',
         width: '500px'
       }}

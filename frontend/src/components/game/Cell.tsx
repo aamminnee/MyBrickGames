@@ -1,6 +1,6 @@
 interface CellProps {
-  color: string | null; // null = case vide (transparente ou grise), string = couleur HTML (ex: "#FF0000")
-  onClick?: () => void; // Fonction déclenchée quand le joueur clique sur la case
+  color: string | null;
+  onClick?: () => void; 
 }
 
 const Cell = ({ color, onClick }: CellProps) => {
@@ -9,12 +9,12 @@ const Cell = ({ color, onClick }: CellProps) => {
       onClick={onClick}
       style={{
         width: '100%',
-        paddingBottom: '100%', // Astuce CSS pour garder un carré parfait
-        backgroundColor: color || '#e0e0e0', // Gris clair si vide
+        paddingBottom: '100%',
+        backgroundColor: color || '#e0e0e0',
         border: '1px solid #ccc',
         boxSizing: 'border-box',
         cursor: onClick ? 'pointer' : 'default',
-        boxShadow: color ? 'inset 0 0 5px rgba(0,0,0,0.3)' : 'none', // Petit effet de relief si coloré
+        boxShadow: color ? 'inset 0 0 5px rgba(0,0,0,0.3)' : 'none',
       }}
     />
   );

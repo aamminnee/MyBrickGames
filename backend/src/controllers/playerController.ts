@@ -10,10 +10,8 @@ export const getPlayerPoints = async (req: Request, res: Response): Promise<void
       return;
     }
 
-    // On cherche le joueur dans la base de données
     let player = await Player.findOne({ loyalty_id: loyaltyId });
 
-    // Si le joueur n'existe pas encore, on le crée (c'est un nouveau visiteur/client)
     if (!player) {
       player = new Player({
         loyalty_id: loyaltyId,
@@ -22,7 +20,6 @@ export const getPlayerPoints = async (req: Request, res: Response): Promise<void
       await player.save();
     }
 
-    // On renvoie les données au format JSON
     res.json({
       loyalty_id: player.loyalty_id,
       points: player.points

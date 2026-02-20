@@ -3,18 +3,16 @@ import { useState, useEffect } from 'react';
 interface TimerProps {
   timeLimit: number;
   onTimeout: () => void;
-  resetKey: number; // Une astuce : quand on change ce nombre, le timer repart à zéro
+  resetKey: number;
 }
 
 const Timer = ({ timeLimit, onTimeout, resetKey }: TimerProps) => {
   const [timeLeft, setTimeLeft] = useState(timeLimit);
 
-  // Réinitialise le temps quand le 'resetKey' change (nouveau tour)
   useEffect(() => {
     setTimeLeft(timeLimit);
   }, [resetKey, timeLimit]);
 
-  // Gère le décompte chaque seconde
   useEffect(() => {
     if (timeLeft <= 0) {
       onTimeout();

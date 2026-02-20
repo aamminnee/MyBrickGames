@@ -3,13 +3,11 @@ import Board from '../components/game/Board';
 import Timer from '../components/game/Timer';
 
 const GameReproduction = () => {
-  // --- NOUVEAU : États pour stocker les données du serveur ---
   const [loading, setLoading] = useState(true);
   const [targetGrid, setTargetGrid] = useState<(string | null)[][]>([]);
   const [rows, setRows] = useState(0);
   const [cols, setCols] = useState(0);
 
-  // --- États du jeu ---
   const [grid, setGrid] = useState<(string | null)[][]>([]);
   const [queue, setQueue] = useState<string[]>([]);
   const [currentBrick, setCurrentBrick] = useState<string | null>(null);
@@ -17,7 +15,6 @@ const GameReproduction = () => {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
 
-  // --- NOUVEAU : Récupération des données au démarrage ---
   useEffect(() => {
     fetch('http://localhost:3000/api/mosaic/random')
       .then(res => res.json())
@@ -27,14 +24,12 @@ const GameReproduction = () => {
         setCols(data.cols);
         setQueue(data.bricksQueue);
         setCurrentBrick(data.bricksQueue[0]);
-        // On génère la grille vide à la bonne taille
         setGrid(Array(data.rows).fill(null).map(() => Array(data.cols).fill(null)));
         setLoading(false);
       })
       .catch(err => console.error("Erreur de chargement:", err));
   }, []);
 
-  // --- Le reste de la logique ne change presque pas ---
   const nextTurn = (newGrid: (string | null)[][], currentQueue: string[]) => {
     const newQueue = [...currentQueue];
     newQueue.shift(); 
@@ -90,8 +85,7 @@ const GameReproduction = () => {
     }
     setScore(correctPlacements);
   };
-
-  // --- Affichage ---
+  
   if (loading) {
     return <h2 style={{ textAlign: 'center', marginTop: '50px' }}>Chargement du niveau... ⏳</h2>;
   }

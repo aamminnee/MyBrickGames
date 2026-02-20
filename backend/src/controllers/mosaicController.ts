@@ -2,10 +2,8 @@ import { Request, Response } from 'express';
 
 export const getRandomMosaic = async (req: Request, res: Response) => {
   try {
-    // ⚠️ Remplace cette URL par la vraie URL locale de ton site PHP
     const phpApiUrl = 'http://127.0.0.1/MyBrickStore_S4/Public/api/getRandomMosaic'; 
     
-    // On appelle PHP en fournissant le mot de passe secret
     const phpResponse = await fetch(phpApiUrl, {
       method: 'GET',
       headers: {
@@ -18,8 +16,7 @@ export const getRandomMosaic = async (req: Request, res: Response) => {
     }
 
     const mosaicData = await phpResponse.json();
-
-    // On renvoie ce que PHP a donné directement à React !
+    
     res.json(mosaicData);
 
   } catch (error) {
