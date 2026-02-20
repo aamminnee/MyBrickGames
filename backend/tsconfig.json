@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    // Environment Settings
+    "module": "CommonJS",
+    "target": "ES2022",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+
+    // For nodejs:
+    "lib": ["ES2022"],
+    "types": ["node"],
+
+    // Other Outputs
+    "sourceMap": true,
+
+    // Stricter Typechecking Options
+    "exactOptionalPropertyTypes": true,
+
+    // Recommended Options
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    
+    // Désactivation des règles d'import ultra-strictes qui causaient tes erreurs
+    "verbatimModuleSyntax": false
+  }
+}
