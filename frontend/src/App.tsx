@@ -1,151 +1,187 @@
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import GameReproduction from './pages/GameReproduction';
+import ChatBox from './components/chat/ChatBox';
+import './App.css'; 
 
 const socket = io('http://localhost:3000');
 
-const Matchmaking = () => {
-  const [roomCode, setRoomCode] = useState<string>('');
-  const [joinCode, setJoinCode] = useState<string>('');
-  const [status, setStatus] = useState<string>('En attente de connexion...');
+const MultiplayerHub = () => {
+  const [screen, setScreen] = useState<'home' | 'lobby' | 'playing'>('home');
+  const [roomCode, setRoomCode] = useState('');
+  const [joinCode, setJoinCode] = useState('');
+  const [isHost, setIsHost] = useState(false);
+  const [guestArrived, setGuestArrived] = useState(false);
+  const [selectedGame, setSelectedGame] = useState('reproduction');
+  const [gameData, setGameData] = useState<any>(null);
 
   useEffect(() => {
     socket.on('room_created', (code) => {
       setRoomCode(code);
-      setStatus(`Salon créé ! Partagez le code : ${code}`);
+      setIsHost(true);
+      setScreen('lobby');
     });
 
-    socket.on('game_started', (message) => {
-      setStatus(`🚀 ${message}`);
+    socket.on('player_joined', () => setGuestArrived(true));
+
+    socket.on('game_started', (data) => {
+      setGameData(data.levelData);
+      setScreen('playing');
     });
 
-    socket.on('room_error', (errorMsg) => {
-      alert(errorMsg);
-    });
+    socket.on('room_error', (msg) => alert(msg));
 
     return () => {
       socket.off('room_created');
+      socket.off('player_joined');
       socket.off('game_started');
       socket.off('room_error');
     };
   }, []);
 
-  return (
-    <div style={{ background: '#f0f2f5', padding: '20px', borderRadius: '10px', marginTop: '20px', display: 'inline-block', textAlign: 'left' }}>
-      <h3>Mode Duplicate (2 Joueurs) 🆚</h3>
-      <p style={{ fontWeight: 'bold', color: '#D92328' }}>Statut : {status}</p>
-      
-      <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
-        {/* Panneau Joueur 1 */}
-        <div style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
-          <h4>Joueur 1 (Hôte)</h4>
-          <button onClick={() => socket.emit('create_room')} style={{ padding: '8px 15px', cursor: 'pointer' }}>
-            Créer un salon
-          </button>
-          {roomCode && <h2 style={{ letterSpacing: '3px' }}>{roomCode}</h2>}
-        </div>
+  const handleJoin = () => {
+    if (!joinCode) return;
+    setIsHost(false);
+    setRoomCode(joinCode);
+    socket.emit('join_room', joinCode);
+    setScreen('lobby');
+  };
 
-        {/* Panneau Joueur 2 */}
-        <div style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
-          <h4>Joueur 2 (Invité)</h4>
-          <input 
-            type="text" 
-            placeholder="Code (ex: ABCD)" 
-            value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-            maxLength={4}
-            style={{ padding: '8px', width: '100px', marginRight: '10px', textTransform: 'uppercase' }}
-          />
-          <button 
-            onClick={() => socket.emit('join_room', joinCode)} 
-            style={{ padding: '8px 15px', cursor: 'pointer' }}
-          >
-            Rejoindre
-          </button>
+  const handleStartGame = () => {
+    socket.emit('launch_game', { roomCode, gameId: selectedGame });
+  };
+
+  if (screen === 'home') {
+    return (
+      <div style={{ maxWidth: '1000px', margin: '60px auto', textAlign: 'center', padding: '0 20px' }}>
+        <h1 style={{ fontSize: '3.5rem', color: 'var(--text-dark)', marginBottom: '10px' }}>
+          MyBrick<span style={{ color: 'var(--lego-red)' }}>Games</span>
+        </h1>
+        <p style={{ fontSize: '1.2rem', color: 'var(--text-grey)', marginBottom: '50px' }}>
+          Entraînez-vous ou défiez vos amis pour gagner des points de fidélité !
+        </p>
+
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', flexWrap: 'wrap' }}>
+          
+          <div className="game-card" style={{ width: '320px', display: 'flex', flexDirection: 'column' }}>
+            <h2 style={{ color: 'var(--lego-blue)' }}>Mode Solo 👤</h2>
+            <p style={{ color: 'var(--text-grey)', flex: 1 }}>Entraînez-vous à reproduire des mosaïques à votre rythme.</p>
+            <div style={{ marginTop: '20px' }}>
+              <button className="btn-lego btn-blue" onClick={() => { setIsHost(true); setScreen('playing'); }}>
+                Jouer tout de suite
+              </button>
+            </div>
+          </div>
+
+          <div className="game-card" style={{ width: '380px', borderTop: '6px solid var(--lego-red)' }}>
+            <h2 style={{ color: 'var(--lego-red)' }}>Mode Compétition 🆚</h2>
+            <p style={{ color: 'var(--text-grey)', marginBottom: '25px' }}>Affrontez un ami sur le même niveau.</p>
+            
+            <button className="btn-lego btn-red" onClick={() => socket.emit('create_room')} style={{ marginBottom: '25px' }}>
+              👑 Créer un Salon (Hôte)
+            </button>
+            
+            <div style={{ position: 'relative', textAlign: 'center', marginBottom: '25px' }}>
+              <span style={{ background: 'white', padding: '0 10px', color: 'var(--text-grey)', fontSize: '0.9rem', position: 'relative', zIndex: 1 }}>OU</span>
+              <hr style={{ position: 'absolute', top: '50%', left: 0, right: 0, border: 'none', borderTop: '1px solid #e2e8f0', margin: 0, zIndex: 0 }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+              <input 
+                className="lego-input"
+                placeholder="CODE (ex: ABCD)" 
+                value={joinCode} 
+                onChange={(e) => setJoinCode(e.target.value.toUpperCase())} 
+                maxLength={4}
+              />
+              <button className="btn-lego btn-blue" onClick={handleJoin} style={{ width: 'auto' }}>
+                Rejoindre
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
-    </div>
-  );
-};
+    );
+  }
 
-const Home = () => (
-  <div style={{ textAlign: 'center', marginTop: '50px' }}>
-    <h1>Bienvenue sur MyBrickGames 🧱</h1>
-    <p>Jouez, gagnez des points de fidélité, et utilisez-les sur notre boutique !</p>
-    
-    <Matchmaking /> {/* On intègre notre nouveau composant ici */}
+  if (screen === 'lobby') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', gap: '40px', padding: '60px 20px', flexWrap: 'wrap' }}>
+        <div className="game-card" style={{ width: '450px' }}>
+          <h2>Salon d'attente</h2>
+          
+          <div style={{ background: '#f8fafc', border: '3px dashed #cbd5e1', borderRadius: '16px', padding: '20px', textAlign: 'center', margin: '20px 0' }}>
+            <span style={{ color: 'var(--text-grey)', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase' }}>Code à partager</span>
+            <div style={{ fontSize: '3rem', letterSpacing: '8px', fontWeight: 'bold', color: 'var(--lego-blue)', fontFamily: 'var(--font-heading)' }}>
+              {roomCode}
+            </div>
+          </div>
 
-    <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', marginTop: '30px' }}>
-        <Link to="/game/reproduction"><button style={{ padding: '10px 20px', cursor: 'pointer' }}>Jeu 1: Reproduction (Solo)</button></Link>
-        <Link to="/game/tetris"><button style={{ padding: '10px 20px', cursor: 'pointer' }}>Jeu 2: Casse-briques (Solo)</button></Link>
-    </div>
-  </div>
-);
+          <p style={{ fontSize: '1.1rem' }}>Vous êtes : <strong style={{ color: isHost ? 'var(--lego-red)' : 'var(--lego-blue)' }}>{isHost ? 'Joueur 1 (Hôte)' : 'Joueur 2 (Invité)'}</strong></p>
+          
+          <div style={{ padding: '15px', background: guestArrived || !isHost ? '#f0fdf4' : '#fffbeb', border: `1px solid ${guestArrived || !isHost ? '#bbf7d0' : '#fef08a'}`, borderRadius: '10px', marginBottom: '25px', fontWeight: '600', color: guestArrived || !isHost ? '#166534' : '#854d0e' }}>
+            {isHost && !guestArrived ? '⏳ En attente du Joueur 2...' : '✅ Les deux joueurs sont prêts !'}
+          </div>
 
-const Profile = () => {
-  const [points, setPoints] = useState<number | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+          {isHost ? (
+            <>
+              <h4 style={{ marginBottom: '10px', color: 'var(--text-grey)' }}>Choix du jeu :</h4>
+              <select 
+                className="lego-input" 
+                value={selectedGame} 
+                onChange={(e) => setSelectedGame(e.target.value)} 
+                style={{ marginBottom: '25px', cursor: 'pointer' }}
+              >
+                <option value="reproduction">🖼️ Jeu 1 : Reproduction de Mosaïque</option>
+                <option value="tetris">🧱 Jeu 2 : Casse-briques (Bientôt)</option>
+              </select>
+              
+              <button className="btn-lego btn-red" onClick={handleStartGame} disabled={!guestArrived}>
+                Lancer la partie ! 🚀
+              </button>
+            </>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '20px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              <p style={{ margin: 0, fontStyle: 'italic', color: 'var(--text-grey)' }}>L'hôte est en train de configurer la partie...</p>
+            </div>
+          )}
+        </div>
 
-  const fakeLoyaltyId = "CLIENT-TEST-123";
-
-  useEffect(() => {
-    fetch(`http://localhost:3000/api/player/${fakeLoyaltyId}`)
-      .then((response) => {
-        if (!response.ok) throw new Error("Erreur réseau");
-        return response.json();
-      })
-      .then((data) => {
-        setPoints(data.points); 
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Erreur:", err);
-        setError("Impossible de récupérer les points.");
-        setLoading(false);
-      });
-  }, []);
+        <div>
+          <ChatBox socket={socket} roomCode={roomCode} userName={isHost ? 'Joueur 1' : 'Joueur 2'} />
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div style={{ textAlign: 'center', marginTop: '50px' }}>
-      <h2>Mon Profil & Mes Points 🏆</h2>
+    <div style={{ display: 'flex', gap: '30px', padding: '40px 20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+      <div className="game-card" style={{ flex: 1, maxWidth: '800px', padding: '20px' }}>
+        <GameReproduction initialLevelData={gameData} /> 
+      </div>
       
-      {/* Affichage conditionnel selon l'état du chargement */}
-      {loading && <p>Chargement du solde...</p>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      {!loading && !error && (
-        <div style={{ background: '#f4f4f4', padding: '20px', borderRadius: '8px', display: 'inline-block', marginTop: '15px' }}>
-          <p style={{ margin: 0, fontSize: '1.2rem' }}>Joueur : <strong>{fakeLoyaltyId}</strong></p>
-          <p style={{ fontSize: '2rem', fontWeight: 'bold', color: '#D92328', margin: '10px 0 0 0' }}>
-            {points} point(s)
-          </p>
+      {!isHost || guestArrived ? (
+        <div style={{ width: '320px' }}>
+          <ChatBox socket={socket} roomCode={roomCode} userName={isHost ? 'Joueur 1' : 'Joueur 2'} />
         </div>
-      )}
+      ) : null}
     </div>
   );
 };
-
-const GameTetris = () => <h2 style={{ textAlign: 'center' }}>Jeu 2 : Casse-briques 🧱 (Bientôt)</h2>;
 
 function App() {
   return (
     <Router>
-      {/* Barre de navigation basique */}
-      <nav style={{ padding: '15px', background: '#D92328', color: 'white', display: 'flex', gap: '20px' }}>
-        <Link to="/" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Accueil</Link>
-        <Link to="/profile" style={{ color: 'white', textDecoration: 'none', fontWeight: 'bold' }}>Profil Fidélité</Link>
-      </nav>
-
-      {/* Zone où les pages s'affichent */}
-      <div style={{ padding: '20px' }}>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/game/reproduction" element={<GameReproduction />} />
-          <Route path="/game/tetris" element={<GameTetris />} />
-        </Routes>
-      </div>
+      <header className="game-header">
+        <Link to="/">⬅️ Retour Boutique</Link>
+        <span style={{ color: '#ccc' }}>|</span>
+        <Link to="/" style={{ color: 'var(--lego-red)' }}>Accueil Jeux</Link>
+      </header>
+      <Routes>
+        <Route path="/" element={<MultiplayerHub />} />
+      </Routes>
     </Router>
   );
 }
