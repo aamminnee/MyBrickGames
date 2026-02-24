@@ -14,7 +14,7 @@ interface BoardProps {
   cellSize?: number;
 }
 
-const Board = ({ rows, cols, bricks, onCellClick, cellSize = 25 }: BoardProps) => {
+const Board = ({ rows, cols, bricks = [], onCellClick, cellSize = 25 }: BoardProps) => {
   return (
     <div style={{
       display: 'inline-grid', 

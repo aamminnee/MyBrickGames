@@ -12,7 +12,7 @@ const GameReproduction = ({ initialLevelData }: GameProps) => {
   const [rows, setRows] = useState(0);
   const [cols, setCols] = useState(0);
 
-  // Les nouveaux états !
+  // the new states
   const [targetBricks, setTargetBricks] = useState<BrickObj[]>([]);
   const [placedBricks, setPlacedBricks] = useState<BrickObj[]>([]);
   
@@ -22,13 +22,43 @@ const GameReproduction = ({ initialLevelData }: GameProps) => {
   const [gameOver, setGameOver] = useState(false);
   const [score, setScore] = useState(0);
 
+  // function to generate a random level locally if the backend is not available
+  const generateLocalLevel = () => {
+    const colors = ['#D92328', '#006CB7', '#FFCF00', '#237841'];
+    const localTargetBricks: BrickObj[] = [];
+    const localBricksQueue: Omit<BrickObj, 'x' | 'y'>[] = [];
+    const localRows = 12;
+    const localCols = 12;
+
+    // generate 8 random bricks
+    for(let i = 0; i < 8; i++) {
+      const w = Math.floor(Math.random() * 3) + 1;
+      const h = Math.floor(Math.random() * 3) + 1;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      const x = Math.floor(Math.random() * (localCols - w));
+      const y = Math.floor(Math.random() * (localRows - h));
+
+      localTargetBricks.push({x, y, w, h, color});
+      localBricksQueue.push({w, h, color});
+    }
+
+    return {
+      rows: localRows,
+      cols: localCols,
+      targetBricks: localTargetBricks,
+      bricksQueue: localBricksQueue
+    };
+  };
+
   const loadLevel = (data: any) => {
-    setTargetBricks(data.targetBricks); // L'objectif a maintenant des bordures !
+    // the target now has borders
+    setTargetBricks(data.targetBricks); 
     setRows(data.rows);
     setCols(data.cols);
     setQueue(data.bricksQueue);
     setCurrentBrick(data.bricksQueue[0]);
-    setPlacedBricks([]); // Plateau vide
+    // empty board
+    setPlacedBricks([]); 
     setLoading(false);
   };
 
@@ -36,10 +66,19 @@ const GameReproduction = ({ initialLevelData }: GameProps) => {
     if (initialLevelData) {
       loadLevel(initialLevelData);
     } else {
+      // try to fetch from server
       fetch('http://localhost:3000/api/mosaic/random')
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) throw new Error('network response was not ok');
+          return res.json();
+        })
         .then(data => loadLevel(data))
-        .catch(err => { console.error(err); setLoading(false); });
+        .catch(err => { 
+          // fallback to local generation if server is unreachable
+          console.warn('backend unreachable, loading local level fallback...', err); 
+          const localData = generateLocalLevel();
+          loadLevel(localData);
+        });
     }
   }, [initialLevelData]);
 
@@ -54,15 +93,17 @@ const GameReproduction = ({ initialLevelData }: GameProps) => {
     }
   };
 
-  // Fonction pour vérifier si une zone est libre
+  // function to check if an area is free
   const isOccupied = (r: number, c: number, w: number, h: number, bricks: BrickObj[]) => {
     return bricks.some(b => !(c + w <= b.x || c >= b.x + b.w || r + h <= b.y || r >= b.y + b.h));
   };
 
   const handleCellClick = (r: number, c: number) => {
     if (gameOver || !currentBrick) return;
-    if (r + currentBrick.h > rows || c + currentBrick.w > cols) return; // Dépasse le bord
-    if (isOccupied(r, c, currentBrick.w, currentBrick.h, placedBricks)) return; // Case prise
+    // exceeds the board limits
+    if (r + currentBrick.h > rows || c + currentBrick.w > cols) return; 
+    // cell already taken
+    if (isOccupied(r, c, currentBrick.w, currentBrick.h, placedBricks)) return; 
 
     const newBrick: BrickObj = { x: c, y: r, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color };
     const newPlaced = [...placedBricks, newBrick];
@@ -97,7 +138,7 @@ const GameReproduction = ({ initialLevelData }: GameProps) => {
     setGameOver(true);
     setCurrentBrick(null);
     
-    // Pour calculer le score, on recrée virtuellement les deux grilles pixels par pixels
+    // to calculate the score, we virtually recreate both grids pixel by pixel
     const finalGridMap = Array(rows).fill(null).map(() => Array(cols).fill(null));
     finalBricks.forEach(b => {
       for(let i=0; i<b.h; i++) for(let j=0; j<b.w; j++) finalGridMap[b.y + i][b.x + j] = b.color;
@@ -128,7 +169,7 @@ const GameReproduction = ({ initialLevelData }: GameProps) => {
           <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
           <div style={{ margin: '15px 0', padding: '15px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'inline-block', borderRadius: '12px' }}>
             <h4 style={{ margin: '0 0 10px 0', color: 'var(--text-grey)' }}>Prochaine Brique :</h4>
-            {/* L'aperçu de la brique à placer utilise maintenant le même style ! */}
+            {/* the preview of the brick to place now uses the same style */}
             <Board rows={currentBrick?.h || 1} cols={currentBrick?.w || 1} bricks={[{x:0, y:0, w: currentBrick?.w || 1, h: currentBrick?.h || 1, color: currentBrick?.color || '#fff'}]} cellSize={20} />
           </div>
 
@@ -138,12 +179,19 @@ const GameReproduction = ({ initialLevelData }: GameProps) => {
         <div style={{ background: '#f0fdf4', border: '2px solid #bbf7d0', padding: '30px', borderRadius: '15px', margin: '20px 0' }}>
           <h2 style={{ color: '#166534' }}>Terminé ! 🎉</h2>
           <p style={{ fontSize: '1.2rem' }}>Précision : <strong>{Math.round((score / (rows * cols)) * 100)}%</strong></p>
+          <button 
+            className="btn-lego btn-blue" 
+            style={{ marginTop: '15px' }} 
+            onClick={() => window.location.reload()}
+          >
+            rejouer
+          </button>
         </div>
       )}
 
       <div style={{ marginTop: '30px', padding: '20px', background: '#fff', borderRadius: '10px' }}>
         <h4 style={{ color: 'var(--text-grey)', marginBottom: '15px' }}>Objectif Miniature :</h4>
-        {/* MAGIQUE : L'objectif s'affiche maintenant avec des bordures noires et des tenons ! */}
+        {/* magic: the target is now displayed with black borders and studs */}
         <Board rows={rows} cols={cols} bricks={targetBricks} cellSize={15} />
       </div>
     </div>
