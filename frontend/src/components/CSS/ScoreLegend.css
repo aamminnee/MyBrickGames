@@ -1,0 +1,36 @@
+/* styles pour le composant scorelegend */
+.tetris-legend {
+  margin-top: 25px;
+  padding: 15px;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  display: inline-block;
+  text-align: left;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.tetris-legend-title {
+  margin: 0 0 10px 0;
+  color: var(--text-grey);
+}
+
+.tetris-legend-list {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--text-grey);
+  font-size: 0.9rem;
+}
+
+.tetris-legend-item {
+  margin-bottom: 5px;
+}
+
+.tetris-legend-color {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  border: 1px solid #000;
+}

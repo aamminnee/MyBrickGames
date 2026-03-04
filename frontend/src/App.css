@@ -1,11 +1,12 @@
+/* import de la police google */
 @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
 
+/* variables globales */
 :root {
   --lego-red: #D92328;
   --lego-red-dark: #b31217;
   --lego-blue: #006CB7;
   --lego-blue-dark: #004c82;
-  --lego-yellow: #FFCF00;
   --text-dark: #1e293b;
   --text-grey: #475569;
   --bg-base: #f4f7f6;
@@ -14,24 +15,23 @@
   --font-body: 'Inter', sans-serif;
 }
 
+/* styles de base */
 body {
   background-color: var(--bg-base);
   color: var(--text-dark);
   font-family: var(--font-body);
   margin: 0;
-
-  background-image: 
-      radial-gradient(#e2e8f0 2px, transparent 2.5px), 
-      radial-gradient(#e2e8f0 2px, transparent 2.5px);
+  background-image: radial-gradient(#e2e8f0 2px, transparent 2.5px), radial-gradient(#e2e8f0 2px, transparent 2.5px);
   background-size: 30px 30px;
   background-position: 0 0, 15px 15px;
 }
 
-h1, h2, h3, h4, h5 {
-  font-family: var(--font-heading);
-  margin-top: 0;
+h1, h2, h3, h4, h5 { 
+  font-family: var(--font-heading); 
+  margin-top: 0; 
 }
 
+/* ui réutilisable */
 .game-card {
   background: var(--card-bg);
   padding: 30px;
@@ -40,8 +40,9 @@ h1, h2, h3, h4, h5 {
   border: 2px solid white;
   transition: transform 0.3s ease;
 }
-.game-card:hover {
-  transform: translateY(-5px);
+
+.game-card:hover { 
+  transform: translateY(-5px); 
 }
 
 .btn-lego {
@@ -60,31 +61,44 @@ h1, h2, h3, h4, h5 {
   width: 100%;
 }
 
-.btn-lego:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none !important;
-  box-shadow: none !important;
+.btn-lego:disabled { 
+  opacity: 0.5; 
+  cursor: not-allowed; 
+  transform: none !important; 
+  box-shadow: none !important; 
 }
 
-.btn-red {
-  background-color: var(--lego-red);
-  color: white;
-  box-shadow: 0 6px 0 var(--lego-red-dark);
-}
-.btn-red:active:not(:disabled) {
-  transform: translateY(6px);
-  box-shadow: 0 0 0 var(--lego-red-dark);
+.btn-red { 
+  background-color: var(--lego-red); 
+  color: white; 
+  box-shadow: 0 6px 0 var(--lego-red-dark); 
 }
 
-.btn-blue {
-  background-color: var(--lego-blue);
-  color: white;
-  box-shadow: 0 6px 0 var(--lego-blue-dark);
+.btn-red:active:not(:disabled) { 
+  transform: translateY(6px); 
+  box-shadow: 0 0 0 var(--lego-red-dark); 
 }
-.btn-blue:active:not(:disabled) {
-  transform: translateY(6px);
-  box-shadow: 0 0 0 var(--lego-blue-dark);
+
+.btn-blue { 
+  background-color: var(--lego-blue); 
+  color: white; 
+  box-shadow: 0 6px 0 var(--lego-blue-dark); 
+}
+
+.btn-blue:active:not(:disabled) { 
+  transform: translateY(6px); 
+  box-shadow: 0 0 0 var(--lego-blue-dark); 
+}
+
+.btn-green { 
+  background-color: #237841; 
+  color: white; 
+  box-shadow: 0 6px 0 #144d28; 
+}
+
+.btn-green:active:not(:disabled) { 
+  transform: translateY(6px); 
+  box-shadow: 0 0 0 #144d28; 
 }
 
 .lego-input {
@@ -100,30 +114,77 @@ h1, h2, h3, h4, h5 {
   background-color: #fcfcfc;
   box-sizing: border-box;
 }
-.lego-input:focus {
-  outline: none;
-  border-color: var(--lego-blue);
-  background-color: #fff;
-  box-shadow: 0 0 0 4px rgba(0, 108, 183, 0.1);
+
+.lego-input:focus { 
+  outline: none; 
+  border-color: var(--lego-blue); 
+  background-color: #fff; 
+  box-shadow: 0 0 0 4px rgba(0, 108, 183, 0.1); 
 }
 
-.game-header {
-  background-color: #ffffff;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
-  height: 70px;
+/* conteneurs de mise en page */
+.app-playing-area {
   display: flex;
-  align-items: center;
-  padding: 0 30px;
-  gap: 20px;
+  gap: 30px;
+  padding: 40px 20px;
+  justify-content: center;
+  flex-wrap: wrap;
 }
-.game-header a {
-  text-decoration: none;
-  color: var(--text-dark);
-  font-weight: 600;
+
+.app-game-card-wrapper {
+  flex: 1;
+  max-width: 900px;
+  padding: 20px;
+}
+
+.app-chat-wrapper {
+  width: 320px;
+}
+
+/* styles de l'en-tête */
+.game-header {
+  background-color: var(--card-bg);
+  padding: 15px 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 20px rgba(0, 108, 183, 0.08);
+  border-bottom: 2px solid white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: 30px;
+}
+
+.header-link, .header-link-home {
   font-family: var(--font-heading);
   font-size: 1.2rem;
-  transition: color 0.3s;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s, transform 0.2s;
 }
-.game-header a:hover {
+
+.header-link {
+  color: var(--text-grey);
+}
+
+.header-link:hover {
   color: var(--lego-blue);
+  transform: translateY(-2px);
+}
+
+.header-separator {
+  color: #cbd5e1;
+  margin: 0 20px;
+  font-weight: bold;
+}
+
+.header-link-home {
+  color: var(--lego-red);
+  cursor: pointer;
+}
+
+.header-link-home:hover {
+  color: var(--lego-red-dark);
+  transform: translateY(-2px);
 }

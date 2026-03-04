@@ -1,3 +1,8 @@
+// board component using css variables instead of inline styles
+import React, { useMemo } from 'react';
+import '../CSS/Board.css'; 
+
+// exported brick interface
 export interface BrickObj {
   x: number;
   y: number;
@@ -6,56 +11,164 @@ export interface BrickObj {
   color: string;
 }
 
+// board properties
 interface BoardProps {
   rows: number;
   cols: number;
   bricks: BrickObj[];
-  onCellClick?: (r: number, c: number) => void;
+  onCellDrop?: (r: number, c: number) => void;
+  onCellHover?: (r: number, c: number) => void;
+  onMouseLeave?: () => void;
+  previewBricks?: BrickObj[] | null;
+  hoverPos?: { r: number, c: number } | null;
   cellSize?: number;
+  gridClassName?: string;
 }
 
-const Board = ({ rows, cols, bricks = [], onCellClick, cellSize = 25 }: BoardProps) => {
+// main board component
+const Board = ({ 
+  rows, 
+  cols, 
+  bricks = [], 
+  onCellDrop, 
+  onCellHover,
+  onMouseLeave,
+  previewBricks,
+  hoverPos,
+  cellSize = 25,
+  gridClassName
+}: BoardProps) => {
+  // centralized svg pattern for lego studs
+  const tenonSvg = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><circle cx="15" cy="15" r="10" fill="rgba(255,255,255,0.15)" stroke="rgba(0,0,0,0.3)" stroke-width="2"/><path d="M 8 15 A 7 7 0 0 1 22 15" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/></svg>')`;
+
+  // memoized grid for visually merging bricks
+  const gridMap = useMemo(() => {
+    const map = Array.from({ length: rows }, () => Array(cols).fill(null));
+    bricks.forEach(b => {
+      for (let i = 0; i < b.h; i++) {
+        for (let j = 0; j < b.w; j++) {
+          if (b.y + i >= 0 && b.y + i < rows && b.x + j >= 0 && b.x + j < cols) {
+            map[b.y + i][b.x + j] = b.color;
+          }
+        }
+      }
+    });
+    return map;
+  }, [rows, cols, bricks]);
+
+  // memoized grid for piece preview
+  const previewMap = useMemo(() => {
+    const map = Array.from({ length: rows }, () => Array(cols).fill(null));
+    if (previewBricks && hoverPos) {
+      previewBricks.forEach(pb => {
+        for (let i = 0; i < pb.h; i++) {
+          for (let j = 0; j < pb.w; j++) {
+            const r = hoverPos.r + pb.y + i;
+            const c = hoverPos.c + pb.x + j;
+            if (r >= 0 && r < rows && c >= 0 && c < cols) {
+              map[r][c] = pb.color;
+            }
+          }
+        }
+      });
+    }
+    return map;
+  }, [rows, cols, previewBricks, hoverPos]);
+
   return (
-    <div style={{
-      display: 'inline-grid', 
-      gridTemplateColumns: `repeat(${cols}, ${cellSize}px)`,
-      gridTemplateRows: `repeat(${rows}, ${cellSize}px)`,
-      background: '#ffffff',
-      border: '2px solid #333',
-      margin: '0 auto',
-      position: 'relative',
-      width: 'max-content', 
-      boxSizing: 'content-box'
-    }}>
+    <div 
+      className={`board-container ${gridClassName || ''}`}
+      onMouseLeave={onMouseLeave}
+      style={{
+        '--grid-cols': cols,
+        '--grid-rows': rows,
+        '--cell-size': `${cellSize}px`
+      } as React.CSSProperties}
+    >
+      {/* background grid cells */}
       {Array.from({ length: rows }).map((_, r) =>
         Array.from({ length: cols }).map((_, c) => (
           <div
             key={`cell-${r}-${c}`}
-            onClick={() => onCellClick && onCellClick(r, c)}
-            style={{
-              gridColumn: c + 1,
-              gridRow: r + 1,
-              border: '1px solid rgba(0,0,0,0.05)',
-              cursor: onCellClick ? 'pointer' : 'default'
+            className="board-cell-bg"
+            onDragOver={(e) => {
+              e.preventDefault(); 
+              if (onCellHover) onCellHover(r, c); 
             }}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (onCellDrop) onCellDrop(r, c);
+            }}
+            style={{
+              '--cell-col': c + 1,
+              '--cell-row': r + 1,
+            } as React.CSSProperties}
           />
         ))
       )}
 
-      {bricks.map((brick, i) => (
-        <div
-          key={`brick-${i}`}
-          style={{
-            gridColumn: `${brick.x + 1} / span ${brick.w}`,
-            gridRow: `${brick.y + 1} / span ${brick.h}`,
-            backgroundColor: brick.color,
-            border: '1px solid rgba(0,0,0,0.5)', 
-            boxSizing: 'border-box',
-            pointerEvents: 'none', 
-            zIndex: 10
-          }}
-        />
-      ))}
+      {/* placed bricks rendering */}
+      {Array.from({ length: rows }).map((_, r) =>
+        Array.from({ length: cols }).map((_, c) => {
+          const color = gridMap[r][c];
+          if (!color) return null;
+
+          const hasTop = r > 0 && gridMap[r - 1][c] === color;
+          const hasBottom = r < rows - 1 && gridMap[r + 1][c] === color;
+          const hasLeft = c > 0 && gridMap[r][c - 1] === color;
+          const hasRight = c < cols - 1 && gridMap[r][c + 1] === color;
+
+          return (
+            <div
+              key={`brick-cell-${r}-${c}`}
+              className="board-brick-placed"
+              style={{
+                '--cell-col': c + 1,
+                '--cell-row': r + 1,
+                '--brick-color': color,
+                '--tenon-svg': tenonSvg,
+                '--cell-size': `${cellSize}px`,
+                '--border-t': hasTop ? 'none' : '1px solid rgba(0,0,0,0.6)',
+                '--border-b': hasBottom ? 'none' : '1px solid rgba(0,0,0,0.6)',
+                '--border-l': hasLeft ? 'none' : '1px solid rgba(0,0,0,0.6)',
+                '--border-r': hasRight ? 'none' : '1px solid rgba(0,0,0,0.6)',
+                '--box-shadow': (!hasBottom || !hasRight) ? '2px 2px 4px rgba(0,0,0,0.3)' : 'none'
+              } as React.CSSProperties}
+            />
+          );
+        })
+      )}
+
+      {/* preview layer rendering */}
+      {Array.from({ length: rows }).map((_, r) =>
+        Array.from({ length: cols }).map((_, c) => {
+          const color = previewMap[r][c];
+          if (!color) return null;
+
+          const hasTop = r > 0 && previewMap[r - 1][c] === color;
+          const hasBottom = r < rows - 1 && previewMap[r + 1][c] === color;
+          const hasLeft = c > 0 && previewMap[r][c - 1] === color;
+          const hasRight = c < cols - 1 && previewMap[r][c + 1] === color;
+
+          return (
+            <div
+              key={`preview-cell-${r}-${c}`}
+              className="board-brick-preview"
+              style={{
+                '--cell-col': c + 1,
+                '--cell-row': r + 1,
+                '--brick-color': color,
+                '--tenon-svg': tenonSvg,
+                '--cell-size': `${cellSize}px`,
+                '--border-t': hasTop ? 'none' : '2px dashed #000',
+                '--border-b': hasBottom ? 'none' : '2px dashed #000',
+                '--border-l': hasLeft ? 'none' : '2px dashed #000',
+                '--border-r': hasRight ? 'none' : '2px dashed #000',
+              } as React.CSSProperties}
+            />
+          );
+        })
+      )}
     </div>
   );
 };

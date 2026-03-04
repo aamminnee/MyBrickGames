@@ -1,0 +1,9 @@
+/* styles pour la page de reproduction principale */
+.reproduction-container {
+  text-align: center;
+}
+
+.reproduction-title {
+  color: var(--lego-blue);
+  margin-bottom: 10px;
+}

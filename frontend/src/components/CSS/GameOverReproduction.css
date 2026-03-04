@@ -1,0 +1,20 @@
+/* styles pour le composant gameoverreproduction */
+.reproduction-gameover-panel {
+  background: #f0fdf4;
+  border: 2px solid #bbf7d0;
+  padding: 30px;
+  border-radius: 15px;
+  margin: 20px 0;
+}
+
+.reproduction-gameover-title {
+  color: #166534;
+}
+
+.reproduction-gameover-text {
+  font-size: 1.2rem;
+}
+
+.reproduction-gameover-btn {
+  margin-top: 15px;
+}

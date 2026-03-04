@@ -1,21 +1,21 @@
 import { useState, useEffect } from 'react';
-import Board from '../components/game/Board';
-import type { BrickObj } from '../components/game/Board';
-import Timer from '../components/game/Timer';
-import DraggableBrick from '../components/game/DraggableBrick';
-import { isOccupied } from '../utils/gameUtils';
-import '../components/CSS/GameReproduction.css'; 
+import Board from '../Board';
+import type { BrickObj } from '../Board';
+import Timer from '../Timer';
+import { isOccupied } from '../../../utils/gameUtils';
+import DifficultySelector, { type Difficulty } from './DifficultySelector';
+import TargetModel from './TargetModel';
+import GameOverReproduction from './GameOverReproduction';
+import ActiveBrick from './ActiveBrick';
 
-// configuration des niveaux
+// configuration des difficultes
 const LEVEL_CONFIG = {
   easy: { maxLevels: 5, label: 'facile (8x8)' },
   normal: { maxLevels: 1, label: 'moyen (10x10)' },
   hard: { maxLevels: 10, label: 'difficile (12x12)' }
 };
 
-type Difficulty = 'easy' | 'normal' | 'hard';
-
-const GameReproduction = () => {
+const ReproductionGame = () => {
   const [levelPath, setLevelPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState(10);
@@ -31,7 +31,7 @@ const GameReproduction = () => {
   const [score, setScore] = useState(0);
   const [hoverPos, setHoverPos] = useState<{ r: number, c: number } | null>(null);
 
-  // charger un niveau specifique
+  // charger le niveau de jeu
   const startGame = (diff: Difficulty) => {
     setLoading(true);
     const max = LEVEL_CONFIG[diff].maxLevels;
@@ -44,7 +44,7 @@ const GameReproduction = () => {
     setTurnIndex(0);
   };
 
-  // recuperer la configuration au montage
+  // recuperer les details du niveau au montage
   useEffect(() => {
     if (!levelPath) return;
 
@@ -99,9 +99,8 @@ const GameReproduction = () => {
       });
   }, [levelPath]);
 
-  // avancer dans la file d'attente
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const nextTurn = (newPlaced: BrickObj[], currentQueue: any[]) => {
+  // passer a la brique suivante dans la file
+  const nextTurn = (newPlaced: BrickObj[], currentQueue: Omit<BrickObj, 'x' | 'y'>[]) => {
     const newQueue = [...currentQueue];
     newQueue.shift(); 
     if (newQueue.length === 0) endGame(newPlaced);
@@ -112,7 +111,7 @@ const GameReproduction = () => {
     }
   };
 
-  // definir la position de survol
+  // definir l'etat de la position de survol
   const handleCellHover = (r: number, c: number) => {
     if (gameOver || !currentBrick) return;
     if (r + currentBrick.h > rows || c + currentBrick.w > cols) {
@@ -122,7 +121,7 @@ const GameReproduction = () => {
     setHoverPos({ r, c });
   };
 
-  // gerer la logique de depot
+  // gerer le depot de la brique sur la grille
   const handleCellDrop = (r: number, c: number) => {
     if (gameOver || !currentBrick) return;
     if (r + currentBrick.h > rows || c + currentBrick.w > cols) return; 
@@ -135,7 +134,7 @@ const GameReproduction = () => {
     nextTurn(newPlaced, queue);
   };
 
-  // gerer la logique du chronometre
+  // jouer un coup aleatoire automatiquement a la fin du temps imparti
   const handleTimeout = () => {
     if (gameOver || !currentBrick) return;
     const validCells: {r: number, c: number}[] = [];
@@ -159,7 +158,7 @@ const GameReproduction = () => {
     }
   };
 
-  // resume de fin de jeu
+  // verifier le score final par rapport a la cible
   const endGame = (finalBricks: BrickObj[]) => {
     setGameOver(true);
     setCurrentBrick(null);
@@ -183,66 +182,28 @@ const GameReproduction = () => {
     setScore(correct);
   };
 
-  // afficher le selecteur
+  // afficher le selecteur de difficulte si aucun niveau n'est choisi
   if (!levelPath) {
-    return (
-      <div className="reproduction-diff-container">
-        <h2 className="reproduction-diff-title">mode reproduction</h2>
-        <h3 className="reproduction-diff-subtitle">choisis ta difficulté :</h3>
-        <div className="reproduction-diff-buttons">
-          <button className="btn-lego btn-green" onClick={() => startGame('easy')}>facile (8x8)</button>
-          <button className="btn-lego btn-blue" onClick={() => startGame('normal')}>moyen (10x10)</button>
-          <button className="btn-lego btn-red" onClick={() => startGame('hard')}>difficile (12x12)</button>
-        </div>
-      </div>
-    );
+    return <DifficultySelector onSelect={startGame} />;
   }
 
+  // afficher l'etat de chargement
   if (loading) return <h2>chargement du niveau... ⏳</h2>;
 
   const currentPreview = currentBrick ? [{ x: 0, y: 0, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color }] : undefined;
 
   return (
-    <div className="reproduction-container">
-      <h2 className="reproduction-title">reproduction ({rows}x{cols})</h2>
+    <div style={{ textAlign: 'center' }}>
+      <h2 style={{ color: 'var(--lego-blue)', marginBottom: '10px' }}>reproduction ({rows}x{cols})</h2>
 
-      <div className="reproduction-target-container">
-        <div>
-          <h4 className="reproduction-target-title">modèle à reproduire :</h4>
-          {/* remplacement de l'image par le composant board */}
-          <div style={{ pointerEvents: 'none', display: 'inline-block', border: '2px solid #ccc', borderRadius: '5px', overflow: 'hidden' }}>
-            <Board 
-              rows={rows} 
-              cols={cols} 
-              bricks={targetBricks} 
-              cellSize={20} 
-            />
-          </div>
-        </div>
-      </div>
+      {/* on passe les targetbricks au lieu du chemin de l'image */}
+      <TargetModel targetBricks={targetBricks} rows={rows} cols={cols} />
 
       {!gameOver ? (
         <>
           <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
           
-          <div className="reproduction-active-brick">
-            <h4 className="reproduction-active-title">pioche la brique et dépose-la :</h4>
-            
-            <div className="reproduction-active-box">
-              <DraggableBrick 
-                disabled={!currentBrick}
-                rows={currentBrick?.h || 1}
-                cols={currentBrick?.w || 1}
-                bricks={currentBrick ? [{x:0, y:0, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color}] : []}
-                cellSize={30}
-                onDragStart={(e) => {
-                  e.dataTransfer.setData('text/plain', 'brique');
-                  e.dataTransfer.effectAllowed = 'move';
-                }}
-                onDragEnd={() => setHoverPos(null)}
-              />
-            </div>
-          </div>
+          <ActiveBrick currentBrick={currentBrick} onDragEnd={() => setHoverPos(null)} />
 
           <br />
           
@@ -259,19 +220,14 @@ const GameReproduction = () => {
           />
         </>
       ) : (
-        <div className="reproduction-gameover-panel">
-          <h2 className="reproduction-gameover-title">terminé !</h2>
-          <p className="reproduction-gameover-text">précision : <strong>{Math.round((score / (rows * cols)) * 100)}%</strong></p>
-          <button 
-            className="btn-lego btn-blue reproduction-gameover-btn" 
-            onClick={() => window.location.reload()}
-          >
-            rejouer
-          </button>
-        </div>
+        <GameOverReproduction 
+          score={score} 
+          totalCells={rows * cols} 
+          onReplay={() => window.location.reload()} 
+        />
       )}
     </div>
   );
 };
 
-export default GameReproduction;
+export default ReproductionGame;

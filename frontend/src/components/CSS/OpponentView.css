@@ -1,0 +1,33 @@
+/* styles pour le composant opponentview */
+.tetris-opponent {
+  width: 220px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 15px;
+  border: 2px dashed #cbd5e1;
+  opacity: 0.9;
+}
+
+.tetris-opponent-title {
+  color: var(--text-dark);
+  margin: 0 0 15px 0;
+}
+
+.tetris-opponent-score {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: var(--lego-blue);
+}
+
+.tetris-opponent-label {
+  font-size: 0.9rem;
+  color: var(--text-grey);
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.tetris-opponent-grid-style {
+  background-color: #94a3b8;
+  border: 3px solid #334155;
+}

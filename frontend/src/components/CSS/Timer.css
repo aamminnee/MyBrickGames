@@ -1,0 +1,14 @@
+/* styles pour le chronomètre */
+.timer-container {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.timer-warning {
+  color: #d92328;
+}
+
+.timer-normal {
+  color: #333;
+}

@@ -1,0 +1,29 @@
+/* styles for the header component */
+.game-header {
+  padding: 20px;
+  text-align: center;
+}
+
+.header-link {
+  text-decoration: none;
+  color: var(--text-dark);
+}
+
+.header-link:hover {
+  text-decoration: underline;
+}
+
+.header-separator {
+  color: #ccc;
+  margin: 0 10px;
+}
+
+.header-link-home {
+  color: var(--lego-red);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.header-link-home:hover {
+  text-decoration: underline;
+}

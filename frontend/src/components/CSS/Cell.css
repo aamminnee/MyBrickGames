@@ -1,0 +1,15 @@
+/* styles pour une cellule individuelle */
+.cell-box {
+  width: 100%;
+  padding-bottom: 100%;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+.cell-pointer {
+  cursor: pointer;
+}
+
+.cell-default {
+  cursor: default;
+}

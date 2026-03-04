@@ -1,0 +1,17 @@
+/* styles pour le composant targetmodel */
+.reproduction-target-container {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.reproduction-target-title {
+  color: var(--text-grey);
+}
+
+.reproduction-target-img {
+  border-radius: 5px;
+  border: 2px solid #ccc;
+  object-fit: cover;
+}

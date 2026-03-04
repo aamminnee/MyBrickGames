@@ -1,0 +1,51 @@
+/* styles pour le plateau de jeu principal */
+.board-container {
+  display: inline-grid;
+  background: #ffffff;
+  border: 2px solid #333;
+  margin: 0 auto;
+  position: relative;
+  width: max-content;
+  box-sizing: content-box;
+  /* dynamic variables for layout */
+  grid-template-columns: repeat(var(--grid-cols, 1), var(--cell-size, 25px));
+  grid-template-rows: repeat(var(--grid-rows, 1), var(--cell-size, 25px));
+}
+
+.board-cell-bg {
+  border: 1px solid rgba(0,0,0,0.05);
+  grid-column: var(--cell-col);
+  grid-row: var(--cell-row);
+}
+
+.board-brick-placed {
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 10;
+  grid-column: var(--cell-col);
+  grid-row: var(--cell-row);
+  background-color: var(--brick-color);
+  background-image: var(--tenon-svg);
+  background-size: var(--cell-size) var(--cell-size);
+  border-top: var(--border-t);
+  border-bottom: var(--border-b);
+  border-left: var(--border-l);
+  border-right: var(--border-r);
+  box-shadow: var(--box-shadow);
+}
+
+.board-brick-preview {
+  box-sizing: border-box;
+  pointer-events: none;
+  z-index: 20;
+  opacity: 0.5;
+  grid-column: var(--cell-col);
+  grid-row: var(--cell-row);
+  background-color: var(--brick-color);
+  background-image: var(--tenon-svg);
+  background-size: var(--cell-size) var(--cell-size);
+  border-top: var(--border-t);
+  border-bottom: var(--border-b);
+  border-left: var(--border-l);
+  border-right: var(--border-r);
+}

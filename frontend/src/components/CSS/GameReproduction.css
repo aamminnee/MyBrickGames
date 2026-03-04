@@ -1,0 +1,96 @@
+/* styles pour la page de reproduction */
+.reproduction-container {
+  text-align: center;
+}
+
+.reproduction-title {
+  color: var(--lego-blue);
+  margin-bottom: 10px;
+}
+
+.reproduction-diff-container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.reproduction-diff-title {
+  color: var(--lego-blue);
+  margin-bottom: 30px;
+}
+
+.reproduction-diff-subtitle {
+  color: var(--text-grey);
+}
+
+.reproduction-diff-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.reproduction-target-container {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.reproduction-target-title {
+  color: var(--text-grey);
+}
+
+.reproduction-target-img {
+  width: var(--target-width, 300px);
+  height: var(--target-height, 300px);
+  border-radius: 5px;
+  border: 2px solid #ccc;
+  object-fit: cover;
+}
+
+.reproduction-active-brick {
+  margin: 15px 0;
+  padding: 15px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  display: inline-block;
+  border-radius: 12px;
+}
+
+.reproduction-active-title {
+  margin: 0 0 10px 0;
+  color: var(--text-grey);
+}
+
+.reproduction-active-box {
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.reproduction-gameover-panel {
+  background: #f0fdf4;
+  border: 2px solid #bbf7d0;
+  padding: 30px;
+  border-radius: 15px;
+  margin: 20px 0;
+}
+
+.reproduction-gameover-title {
+  color: #166534;
+}
+
+.reproduction-gameover-text {
+  font-size: 1.2rem;
+}
+
+.reproduction-gameover-btn {
+  margin-top: 15px;
+}

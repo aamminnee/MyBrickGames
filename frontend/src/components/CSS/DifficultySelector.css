@@ -1,0 +1,21 @@
+/* styles pour le composant difficultyselector */
+.reproduction-diff-container {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.reproduction-diff-title {
+  color: var(--lego-blue);
+  margin-bottom: 30px;
+}
+
+.reproduction-diff-subtitle {
+  color: var(--text-grey);
+}
+
+.reproduction-diff-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+}

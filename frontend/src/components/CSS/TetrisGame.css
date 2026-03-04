@@ -1,0 +1,26 @@
+
+
+.game-layout-flex { display: flex; justify-content: center; align-items: flex-start; gap: 40px; flex-wrap: wrap; }
+.game-main-col { flex: 1; min-width: 300px; }
+.game-score-display { font-size: 1.5rem; font-weight: bold; margin: 10px 0; color: var(--lego-red); }
+
+.score-legend-box { margin-top: 25px; padding: 15px; background: #fff; border-radius: 8px; border: 1px solid #e2e8f0; display: inline-block; text-align: left; width: 100%; box-sizing: border-box; }
+.score-legend-title { margin: 0 0 10px 0; color: var(--text-grey); }
+.score-legend-list { margin: 0; padding-left: 20px; color: var(--text-grey); font-size: 0.9rem; }
+.score-legend-item { margin-bottom: 5px; }
+.score-legend-color { display: inline-block; width: 12px; height: 12px; margin-right: 8px; border: 1px solid #000; }
+
+.opponent-panel { width: 220px; padding: 20px; background: #f8fafc; border-radius: 15px; border: 2px dashed #cbd5e1; opacity: 0.9; }
+.opponent-title { margin: 0 0 15px 0; }
+.opponent-score { font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; color: var(--lego-blue); }
+.opponent-label { font-size: 0.9rem; color: var(--text-grey); margin-bottom: 8px; font-weight: bold; }
+
+.piece-pool-container { margin: 20px 0; }
+.piece-pool-title { margin: 0 0 10px 0; color: var(--text-grey); }
+.piece-pool-flex { display: flex; justify-content: center; gap: 15px; }
+.piece-pool-item { padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; display: flex; flex-direction: column; align-items: center; width: 110px; height: 110px; }
+.piece-pool-hint { font-size: 0.8rem; color: var(--text-grey); margin-top: 10px; font-style: italic; }
+
+.game-over-panel { background: #f0fdf4; border: 2px solid #bbf7d0; padding: 30px; border-radius: 15px; margin: 20px 0; }
+.game-over-title { color: #166534; }
+.game-over-text { font-size: 1.2rem; }
