@@ -8,6 +8,7 @@ import ChatBox from './components/chat/ChatBox';
 import Header from './components/layout/Header';
 import HomeMenu from './components/layout/HomeMenu';
 import WaitingLobby from './components/layout/WaitingLobby';
+import LoyaltyDashboard from './components/loyalty/LoyaltyDashboard';
 import './App.css'; 
 
 // initialize socket connection
@@ -119,7 +120,7 @@ const MultiplayerHub = () => {
             {gameData?.gameId === 'tetris' ? (
               <TetrisGame initialLevelData={gameData?.levelData} socket={socket} roomCode={roomCode} />
             ) : (
-              <ReproductionGame />
+              <ReproductionGame roomCode={roomCode} />
             )}
           </div>
           
@@ -139,6 +140,12 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MultiplayerHub />} />
+        <Route path="/loyalty" element={
+          <>
+            <Header onReturnHome={(e) => { e.preventDefault(); window.location.href = '/'; }} />
+            <LoyaltyDashboard />
+          </>
+        } />
       </Routes>
     </Router>
   );

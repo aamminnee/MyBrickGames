@@ -7,6 +7,25 @@ export interface BrickObj {
   color: string;
 }
 
+// generateur de nombres pseudo-aleatoires avec graine (pour la synchronisation multijoueur)
+// algorithme mulberry32 pour une distribution de haute qualite
+export const createSeededRNG = (seedStr: string) => {
+  let h = 0xdeadbeef;
+  for (let i = 0; i < seedStr.length; i++) {
+      h = Math.imul(h ^ seedStr.charCodeAt(i), 2654435761);
+  }
+  h = Math.imul(h ^ h >>> 16, 2246822507);
+  h = Math.imul(h ^ h >>> 13, 3266489909);
+  let seed = (h ^= h >>> 16) >>> 0;
+
+  return () => {
+    let t = seed += 0x6d2b79f5;
+    t = Math.imul(t ^ t >>> 15, t | 1);
+    t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+};
+
 // verifie si une zone est occupee selon la logique
 export const isOccupied = (r: number, c: number, w: number, h: number, bricks: BrickObj[]) => {
   return bricks.some(b => !(c + w <= b.x || c >= b.x + b.w || r + h <= b.y || r >= b.y + b.h));
@@ -61,10 +80,8 @@ export const gridToBricks = (grid: (string | null)[][]): BrickObj[] => {
   return bricks;
 };
 
-// convertit une forme tetris (matrice 0/1) en sous-briques fusionnees (ex: un L devient une brique 3x1 et une brique 1x1)
+// convertit une forme tetris (matrice 0/1) en sous-briques fusionnees
 export const shapeToBricks = (shape: number[][], color: string): BrickObj[] => {
-  // cree une grille temporaire
   const grid = shape.map(row => row.map(val => val === 1 ? color : null));
-  // utilise gridtobricks pour grouper visuellement les blocs
   return gridToBricks(grid);
 };

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Board from '../Board';
 import type { BrickObj } from '../Board';
 import Timer from '../Timer';
-import { isOccupied } from '../../../utils/gameUtils';
+import { isOccupied, createSeededRNG } from '../../../utils/gameUtils';
 import DifficultySelector, { type Difficulty } from './DifficultySelector';
 import TargetModel from './TargetModel';
 import GameOverReproduction from './GameOverReproduction';
@@ -15,7 +15,11 @@ const LEVEL_CONFIG = {
   hard: { maxLevels: 10, label: 'difficile (12x12)' }
 };
 
-const ReproductionGame = () => {
+interface ReproductionGameProps {
+  roomCode?: string;
+}
+
+const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
   const [levelPath, setLevelPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState(10);
@@ -31,11 +35,26 @@ const ReproductionGame = () => {
   const [score, setScore] = useState(0);
   const [hoverPos, setHoverPos] = useState<{ r: number, c: number } | null>(null);
 
-  // charger le niveau de jeu
+  // envoi automatique des points au backend quand la partie se termine
+  useEffect(() => {
+    if (gameOver) {
+      const percentage = Math.round((score / (rows * cols)) * 100);
+      const loyaltyId = localStorage.getItem('loyaltyId') || 'joueur_test_123';
+      fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameId: 'reproduction', score: percentage })
+      }).catch(err => console.error("erreur d'envoi du score:", err));
+    }
+  }, [gameOver, score, rows, cols]);
+
+  // charger le niveau de jeu (le meme pour les 2 joueurs s'ils choisissent la meme difficulte)
   const startGame = (diff: Difficulty) => {
     setLoading(true);
     const max = LEVEL_CONFIG[diff].maxLevels;
-    const randomId = Math.floor(Math.random() * max) + 1; 
+    
+    const rngLevel = roomCode ? createSeededRNG(roomCode + "level") : Math.random;
+    const randomId = Math.floor(rngLevel() * max) + 1; 
     
     setLevelPath(`levels/${diff}/${randomId}`); 
     setGameOver(false);
@@ -55,7 +74,6 @@ const ReproductionGame = () => {
       })
       .then(text => {
         const lines = text.trim().split('\n');
-        lines.shift();
         
         const parsedBricks: BrickObj[] = [];
         let maxR = 0;
@@ -85,9 +103,11 @@ const ReproductionGame = () => {
         setCols(maxC);
         setTargetBricks(parsedBricks);
 
+        // melange deterministe des briques base sur le code du salon
+        const rngShuffle = roomCode ? createSeededRNG(roomCode + levelPath) : Math.random;
         const initialQueue = parsedBricks
           .map(b => ({ w: b.w, h: b.h, color: b.color }))
-          .sort(() => Math.random() - 0.5);
+          .sort(() => rngShuffle() - 0.5);
 
         setQueue(initialQueue);
         setCurrentBrick(initialQueue[0]);
@@ -97,7 +117,7 @@ const ReproductionGame = () => {
         console.error("erreur :", err);
         setLoading(false);
       });
-  }, [levelPath]);
+  }, [levelPath, roomCode]);
 
   // passer a la brique suivante dans la file
   const nextTurn = (newPlaced: BrickObj[], currentQueue: Omit<BrickObj, 'x' | 'y'>[]) => {
@@ -148,7 +168,8 @@ const ReproductionGame = () => {
     }
 
     if (validCells.length > 0) {
-      const randomCell = validCells[Math.floor(Math.random() * validCells.length)];
+      const timeoutRng = roomCode ? createSeededRNG(roomCode + turnIndex) : Math.random;
+      const randomCell = validCells[Math.floor(timeoutRng() * validCells.length)];
       const newBrick: BrickObj = { x: randomCell.c, y: randomCell.r, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color };
       const newPlaced = [...placedBricks, newBrick];
       setPlacedBricks(newPlaced);

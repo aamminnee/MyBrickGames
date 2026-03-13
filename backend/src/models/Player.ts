@@ -1,28 +1,28 @@
+// fichier : models/player.ts
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface IPlayer extends Document {
-  loyalty_id: string; 
-  points: number;    
-  createdAt: Date;
-  updatedAt: Date;
+// interface pour un lot de points avec sa date d'expiration
+export interface ILoyaltyPoint {
+    amount: number;
+    expirationDate: Date;
 }
 
-const PlayerSchema: Schema = new Schema(
-  {
-    loyalty_id: { 
-      type: String, 
-      required: true, 
-      unique: true,
-      index: true   
-    },
-    points: { 
-      type: Number, 
-      default: 0   
-    }
-  },
-  { 
-    timestamps: true
-  }
-);
+// interface pour le document joueur
+export interface IPlayer extends Document {
+    loyaltyId: string;
+    loyaltyPoints: ILoyaltyPoint[];
+}
 
-export default mongoose.model<IPlayer>('Player', PlayerSchema);
+// schéma définissant un lot de points
+const LoyaltyPointSchema = new Schema({
+    amount: { type: Number, required: true },
+    expirationDate: { type: Date, required: true }
+});
+
+// schéma principal du joueur
+const PlayerSchema = new Schema({
+    loyaltyId: { type: String, required: true, unique: true },
+    loyaltyPoints: [LoyaltyPointSchema],
+});
+
+export const Player = mongoose.model<IPlayer>('Player', PlayerSchema);

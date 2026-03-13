@@ -3,8 +3,8 @@ import Timer from '../Timer';
 import Board from '../Board';
 import DraggableBrick from '../DraggableBrick';
 import { Socket } from 'socket.io-client';
-import { gridToBricks, shapeToBricks } from '../../../utils/gameUtils';
-import '../../CSS/GameTetris.css'; // importation du css
+import { gridToBricks, shapeToBricks, createSeededRNG } from '../../../utils/gameUtils';
+import '../../CSS/GameTetris.css'; 
 
 // interface de forme
 interface Piece {
@@ -12,7 +12,7 @@ interface Piece {
   color: string;
 }
 
-// interface des propriétés
+// interface des proprietes
 interface TetrisProps {
   initialLevelData?: {
     queue?: Piece[];
@@ -42,15 +42,15 @@ const SHAPES = [
   [[1, 1, 0], [0, 1, 1]]  
 ];
 
-// pivoter la matrice 2d de 90 degrés
+// pivoter la matrice 2d de 90 degres
 const getRotatedShape = (shape: number[][]) => {
   return shape[0].map((_, index) => shape.map(row => row[index]).reverse());
 };
 
-// choisir une couleur aléatoire basée sur le poids
-const getRandomColor = () => {
+// choisir une couleur aleatoire (utilise le rng fourni pour la synchro)
+const getRandomColor = (rng: () => number = Math.random) => {
   const totalWeight = Object.values(colorConfig).reduce((sum, config) => sum + config.weight, 0);
-  let random = Math.random() * totalWeight;
+  let random = rng() * totalWeight;
   for (const [color, config] of Object.entries(colorConfig)) {
     if (random < config.weight) return color;
     random -= config.weight;
@@ -61,12 +61,23 @@ const getRandomColor = () => {
 const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
   const [board, setBoard] = useState<(string | null)[][]>([]);
   const [queue, setQueue] = useState<Piece[]>([]);
-  // on n'affiche plus qu'une seule pièce à la fois
   const [availablePieces, setAvailablePieces] = useState<(Piece | null)[]>([null]);
   const [score, setScore] = useState(0);
   const [gameOver, setGameOver] = useState(false);
   const [turnIndex, setTurnIndex] = useState(0);
   
+  // envoi automatique des points au backend quand la partie se termine
+  useEffect(() => {
+    if (gameOver) {
+      const loyaltyId = localStorage.getItem('loyaltyId') || 'joueur_test_123';
+      fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameId: 'tetris', score: score })
+      }).catch(err => console.error("erreur d'envoi du score:", err));
+    }
+  }, [gameOver, score]);
+
   const [isDragging, setIsDragging] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverPos, setDragOverPos] = useState<{ r: number; c: number } | null>(null);
@@ -78,24 +89,29 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
   const rows = initialLevelData?.rows || 8;
   const cols = initialLevelData?.cols || 8;
 
-  // initialiser les pièces
+  // initialiser les pieces de facon synchronisee
   useEffect(() => {
-    const randomQueue = Array.from({ length: 100 }, () => ({
-      shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
-      color: getRandomColor()
+    // utilise le roomcode pour initialiser le meme generateur chez les 2 joueurs
+    const rng = roomCode ? createSeededRNG(roomCode) : Math.random;
+
+    // on genere 2000 pieces d'un coup pour etre sur de ne pas manquer de briques
+    // sans avoir a les regenerer en cours de partie
+    const randomQueue = Array.from({ length: 2000 }, () => ({
+      shape: SHAPES[Math.floor(rng() * SHAPES.length)],
+      color: getRandomColor(rng)
     }));
 
     const emptyBoard = Array.from({ length: rows }, () => Array(cols).fill(null));
     setBoard(emptyBoard);
     
     const finalQueue = (initialLevelData && initialLevelData.queue) ? initialLevelData.queue : randomQueue;
-    // on ne pioche qu'une seule pièce au lieu de 3
     const initialPieces = finalQueue.splice(0, 1);
+    
     setAvailablePieces(initialPieces);
     setQueue(finalQueue);
-  }, [initialLevelData, rows, cols]);
+  }, [initialLevelData, rows, cols, roomCode]);
 
-  // gérer les données du socket
+  // gerer les donnees du socket
   useEffect(() => {
     if (!socket) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -109,13 +125,13 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     };
   }, [socket]);
 
-  // émettre les changements d'état
+  // emettre les changements d'etat
   useEffect(() => {
     if (!socket || !roomCode || board.length === 0) return;
     socket.emit('send_tetris_state', { roomCode, board, availablePieces, score });
   }, [board, availablePieces, score, socket, roomCode]);
 
-  // rotation de la pièce
+  // rotation de la piece
   const handleRotate = (index: number, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -130,7 +146,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     setAvailablePieces(newAvailablePieces);
   };
 
-  // vérifier les placements valides (détection de collision directe sur la grille)
+  // verifier les placements valides
   const isValidPlacement = (checkBoard: (string | null)[][], startR: number, startC: number, shape: number[][]) => {
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
@@ -138,12 +154,10 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
           const targetR = startR + r;
           const targetC = startC + c;
           
-          // vérifie si la brique dépasse de la grille
           if (targetR < 0 || targetR >= rows || targetC < 0 || targetC >= cols) {
             return false;
           }
           
-          // vérifie s'il y a déjà une brique à cet emplacement (collision)
           if (checkBoard[targetR][targetC] !== null) {
             return false;
           }
@@ -153,7 +167,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     return true;
   };
 
-  // vérifier si la partie est terminée
+  // verifier si la partie est terminee
   const canPlaceAnywhere = (checkBoard: (string | null)[][], piece: Piece) => {
     let currentShape = piece.shape;
     for (let rot = 0; rot < 4; rot++) {
@@ -167,7 +181,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     return false;
   };
 
-  // logique pour placer une pièce
+  // logique pour placer une piece
   const placePiece = (startR: number, startC: number, pieceIndex: number) => {
     const piece = availablePieces[pieceIndex];
     if (!piece) return;
@@ -234,16 +248,17 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     let currentQueue = [...queue];
     let isOver = false;
 
-    // recharger une pièce si toutes sont placées
+    // recharger une piece depuis la longue file
     if (newAvailable.every(p => p === null)) {
       if (currentQueue.length < 1) {
-        const morePieces = Array.from({ length: 50 }, () => ({
-          shape: SHAPES[Math.floor(Math.random() * SHAPES.length)],
-          color: getRandomColor()
+        // file de securite au cas improbable ou 2000 pieces ne suffisent pas
+        const fallbackRng = roomCode ? createSeededRNG(roomCode + "fallback") : Math.random;
+        const morePieces = Array.from({ length: 100 }, () => ({
+          shape: SHAPES[Math.floor(fallbackRng() * SHAPES.length)],
+          color: getRandomColor(fallbackRng)
         }));
         currentQueue = [...currentQueue, ...morePieces];
       }
-      // on ne pioche qu'une seule pièce
       nextAvailable = currentQueue.splice(0, 1);
       setQueue(currentQueue);
     }
@@ -275,7 +290,9 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     }
 
     if (validPositions.length > 0) {
-      const pos = validPositions[Math.floor(Math.random() * validPositions.length)];
+      // utiliser le generateur synchro meme pour le placement par defaut du temps ecoule
+      const timeoutRng = roomCode ? createSeededRNG(roomCode + turnIndex) : Math.random;
+      const pos = validPositions[Math.floor(timeoutRng() * validPositions.length)];
       placePiece(pos.r, pos.c, pieceIndex);
     } else {
       setGameOver(true);
@@ -286,7 +303,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
   const adjustedR = dragOverPos ? dragOverPos.r - dragOffset.r : 0;
   const adjustedC = dragOverPos ? dragOverPos.c - dragOffset.c : 0;
 
-  // commencer à glisser
+  // commencer a glisser
   const handleDragStart = (e: React.DragEvent, index: number) => {
     if (gameOver) e.preventDefault();
     setIsDragging(true);
@@ -308,7 +325,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     setDragOverPos({ r, c });
   };
 
-  // gestion du dépôt
+  // gestion du depot
   const handleCellDrop = (r: number, c: number) => {
     setIsDragging(false);
     setDragOverPos(null);

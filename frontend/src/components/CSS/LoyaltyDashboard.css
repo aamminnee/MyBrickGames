@@ -1,0 +1,104 @@
+.loyalty-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+.loyalty-card {
+  background: var(--card-bg);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 108, 183, 0.1);
+  border: 2px solid white;
+  margin-bottom: 30px;
+}
+
+.loyalty-title {
+  color: var(--lego-blue);
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.loyalty-input-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.loyalty-input-group input {
+  max-width: 300px;
+}
+
+.loyalty-stats {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.loyalty-stat-box {
+  background: #f8fafc;
+  padding: 20px 40px;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+}
+
+.loyalty-stat-box p {
+  margin: 0 0 10px 0;
+  color: var(--text-grey);
+  font-weight: 600;
+}
+
+.loyalty-stat-value {
+  font-size: 3rem;
+  font-weight: bold;
+  color: var(--lego-red);
+}
+
+.loyalty-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+.loyalty-message {
+  text-align: center;
+  margin-top: 20px;
+  font-weight: bold;
+  color: #166534;
+  background: #f0fdf4;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+}
+
+.loyalty-message-error {
+  color: #991b1b;
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.loyalty-history-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.loyalty-history-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.loyalty-history-item:last-child {
+  border-bottom: none;
+}
