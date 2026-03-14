@@ -228,7 +228,7 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
 
           <br />
           
-          <Board 
+         <Board 
             rows={rows} 
             cols={cols} 
             bricks={placedBricks} 
@@ -243,8 +243,8 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
       ) : (
         <GameOverReproduction 
           score={score} 
-          totalCells={rows * cols} 
-          onReplay={() => window.location.reload()} 
+          onRestart={() => window.location.reload()} 
+          onReturnHome={() => window.location.href = '/'}
         />
       )}
     </div>

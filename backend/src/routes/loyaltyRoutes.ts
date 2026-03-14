@@ -1,8 +1,11 @@
 // fichier : routes/loyaltyroutes.ts
 import express from 'express';
-import { getBalance, consumePoints } from '../controllers/loyaltyController';
+import { getBalance, consumePoints, getLoyaltyPoints } from '../controllers/loyaltyController';
 
 const router = express.Router();
+
+// route get pour permettre au site php de lire les points
+router.get('/:loyaltyId/points', getLoyaltyPoints);
 
 // route pour obtenir le solde de points d'un utilisateur précis
 router.get('/:loyaltyId/balance', getBalance);

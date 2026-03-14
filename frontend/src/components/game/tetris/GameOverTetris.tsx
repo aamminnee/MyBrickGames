@@ -1,24 +1,70 @@
-// game over component for tetris
+import { useEffect, useState } from 'react';
 import '../../CSS/GameOverTetris.css';
 
-// interface for props
 interface GameOverTetrisProps {
   score: number;
-  onReplay: () => void;
+  lines: number;
+  onRestart: () => void;
+  onReturnHome: () => void;
 }
 
-const GameOverTetris = ({ score, onReplay }: GameOverTetrisProps) => {
+const GameOverTetris = ({ score, lines, onRestart, onReturnHome }: GameOverTetrisProps) => {
+  // state for database save
+  const [pointsSaved, setPointsSaved] = useState(false);
+  const [pointsEarned, setPointsEarned] = useState(0);
+
+  // automatic api call when game over is displayed
+  useEffect(() => {
+    const saveTetrisScore = async () => {
+      const loyaltyId = localStorage.getItem('loyalty_id');
+      
+      if (loyaltyId && !pointsSaved) {
+        try {
+          // fixed api route to match the backend playerroutes.ts
+          const response = await fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              gameId: 'tetris',
+              score: score
+            })
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            setPointsEarned(data.pointsEarned);
+            setPointsSaved(true);
+          }
+        } catch (error) {
+          console.error("api error:", error);
+        }
+      }
+    };
+
+    saveTetrisScore();
+  }, [score, pointsSaved]);
+
   return (
-    <div className="tetris-gameover">
-      <h2 className="tetris-gameover-title">partie terminée !</h2>
-      <p className="tetris-gameover-text">plus aucun bloc ne peut être placé.</p>
-      <p className="tetris-gameover-text">votre score final est de : <strong>{score}</strong> points</p>
-      <button 
-        className="btn-lego btn-blue tetris-gameover-btn" 
-        onClick={onReplay}
-      >
-        rejouer
-      </button>
+    <div className="game-over-tetris">
+      <h2>fin de partie</h2>
+      
+      <div className="stats-container">
+        <p>lignes complétées : <strong>{lines}</strong></p>
+        <p>score final : <strong>{score}</strong></p>
+        
+        {pointsSaved && (
+          <div className="loyalty-reward">
+            <span>+{pointsEarned} points de fidélité</span>
+          </div>
+        )}
+      </div>
+
+      <div className="actions-container">
+        <button onClick={onRestart} className="btn-restart-tetris">nouvelle partie</button>
+        <button onClick={onReturnHome} className="btn-home-tetris">quitter</button>
+      </div>
     </div>
   );
 };
