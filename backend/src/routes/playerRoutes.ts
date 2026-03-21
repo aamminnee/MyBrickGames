@@ -3,7 +3,7 @@ import {
   getPlayerPoints, 
   consumePoints, 
   addGameResult, 
-  getPlayerHistory 
+  getPlayerHistory
 } from '../controllers/playerController';
 
 const router = Router();

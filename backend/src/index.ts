@@ -8,6 +8,8 @@ import { Server } from 'socket.io';
 
 import playerRoutes from './routes/playerRoutes';
 import mosaicRoutes from './routes/mosaicRoutes';
+import GameHistory from './models/GameHistory';
+import { Player } from './models/Player';
 
 dotenv.config();
 
@@ -102,6 +104,40 @@ io.on('connection', (socket) => {
       }
     } catch (err) {
       console.error("erreur serveur :", err);
+    }
+  });
+
+  socket.on('game_finished', async (data) => {
+    const { loyaltyId, gameId, score } = data;
+    
+    // 1. Récupération de la politique (simulée ici, idéalement fetch depuis PHP)
+    // Règle simple : 1 point par tranche de 10 points de score + 5 points de participation
+    const pointsEarned = Math.floor(score / 10) + 5;
+    
+    // Date d'expiration (ex: dans 30 jours)
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 30);
+
+    try {
+        // 2. Enregistrer l'historique
+        await GameHistory.create({
+            loyalty_id: loyaltyId,
+            gameId,
+            score,
+            pointsEarned,
+            playedAt: new Date()
+        });
+
+        // 3. Ajouter les points au joueur
+        await Player.findOneAndUpdate(
+            { loyaltyId },
+            { $push: { loyaltyPoints: { amount: pointsEarned, expirationDate } } },
+            { upsert: true } // Crée le joueur s'il n'existe pas (visiteur)
+        );
+
+        socket.emit('points_updated', { pointsEarned, totalPoints: pointsEarned });
+    } catch (err) {
+        console.error("Erreur enregistrement points:", err);
     }
   });
 
