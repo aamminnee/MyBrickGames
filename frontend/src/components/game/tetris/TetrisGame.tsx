@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Timer from '../Timer';
 import Board from '../Board';
 import DraggableBrick from '../DraggableBrick';
@@ -66,10 +66,23 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
   const [gameOver, setGameOver] = useState(false);
   const [turnIndex, setTurnIndex] = useState(0);
   
+  // NOUVEAU : On crée le verrou pour le score
+  const scoreSubmitted = useRef(false);
+  
   // envoi automatique des points au backend quand la partie se termine
   useEffect(() => {
-    if (gameOver) {
-      const loyaltyId = localStorage.getItem('loyaltyId') || 'joueur_test_123';
+    // CORRECTION : On vérifie que le verrou est bien ouvert (!scoreSubmitted.current)
+    if (gameOver && !scoreSubmitted.current) {
+      
+      // On VERROUILLE immédiatement !
+      scoreSubmitted.current = true;
+
+      let loyaltyId = localStorage.getItem('loyalty_id');
+      if (!loyaltyId) {
+        loyaltyId = 'visitor_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('loyalty_id', loyaltyId);
+      }
+
       fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

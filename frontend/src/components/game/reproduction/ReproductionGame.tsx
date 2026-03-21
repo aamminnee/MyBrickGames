@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Board from '../Board';
 import type { BrickObj } from '../Board';
 import Timer from '../Timer';
@@ -10,9 +10,9 @@ import ActiveBrick from './ActiveBrick';
 
 // configuration des difficultes
 const LEVEL_CONFIG = {
-  easy: { maxLevels: 5, label: 'facile (8x8)' },
-  normal: { maxLevels: 1, label: 'moyen (10x10)' },
-  hard: { maxLevels: 10, label: 'difficile (12x12)' }
+  easy: { maxLevels: 3, label: 'facile (8x8)' },
+  normal: { maxLevels: 3, label: 'moyen (10x10)' },
+  hard: { maxLevels: 1, label: 'difficile (12x12)' }
 };
 
 interface ReproductionGameProps {
@@ -35,22 +35,41 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
   const [score, setScore] = useState(0);
   const [hoverPos, setHoverPos] = useState<{ r: number, c: number } | null>(null);
 
+  const scoreSubmitted = useRef(false);
+
   // envoi automatique des points au backend quand la partie se termine
   useEffect(() => {
-    if (gameOver) {
-      const percentage = Math.round((score / (rows * cols)) * 100);
-      const loyaltyId = localStorage.getItem('loyaltyId') || 'joueur_test_123';
+    // NOUVEAU : On vérifie que le verrou est ouvert
+    if (gameOver && !scoreSubmitted.current) {
+      scoreSubmitted.current = true; // NOUVEAU : On ferme le verrou instantanément
+
+      const maxPossibleCells = targetBricks.reduce((acc, b) => acc + (b.w * b.h), 0);
+      const percentage = Math.round((score / maxPossibleCells) * 100);
+      
+      let loyaltyId = localStorage.getItem('loyalty_id');
+      if (!loyaltyId) {
+        loyaltyId = 'visitor_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('loyalty_id', loyaltyId);
+      }
+
       fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId: 'reproduction', score: percentage })
-      }).catch(err => console.error("erreur d'envoi du score:", err));
+        body: JSON.stringify({ 
+          gameId: 'reproduction', 
+          score: percentage,
+          difficulty: levelPath?.split('/')[1] || 'normal'
+        })
+      }).catch(err => console.error("Erreur d'envoi du score:", err));
     }
-  }, [gameOver, score, rows, cols]);
+  }, [gameOver, score, targetBricks, levelPath]);
 
   // charger le niveau de jeu (le meme pour les 2 joueurs s'ils choisissent la meme difficulte)
   const startGame = (diff: Difficulty) => {
     setLoading(true);
+
+    scoreSubmitted.current = false;
+    
     const max = LEVEL_CONFIG[diff].maxLevels;
     
     const rngLevel = roomCode ? createSeededRNG(roomCode + "level") : Math.random;
@@ -201,6 +220,7 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
       }
     }
     setScore(correct);
+    
   };
 
   // afficher le selecteur de difficulte si aucun niveau n'est choisi

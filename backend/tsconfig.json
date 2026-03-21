@@ -22,6 +22,8 @@
     "skipLibCheck": true,
     
     // Désactivation des règles d'import ultra-strictes qui causaient tes erreurs
-    "verbatimModuleSyntax": false
+    "verbatimModuleSyntax": false,
+
+    "resolveJsonModule": true
   }
 }

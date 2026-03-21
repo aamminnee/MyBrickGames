@@ -1,0 +1,39 @@
+{
+  "participation": {
+    "points": 50,
+    "expirationDays": 7
+  },
+  "reproduction": {
+    "multipliers": {
+      "easy": 1.0,
+      "normal": 2.0,
+      "hard": 4.0
+    },
+    "perfectBonus": {
+      "points": 100,
+      "expirationDays": 90
+    },
+    "expirationDays": 30
+  },
+  "tetris": {
+    "scoreDivisor": 50,
+    "achievements": [
+      { "threshold": 20000, "bonus": 500, "expirationDays": 90 },
+      { "threshold": 5000, "bonus": 100, "expirationDays": 90 }
+    ],
+    "expirationDays": 30
+  },
+  "dynamicBoosts": {
+    "happyHour": {
+      "startHour": 12,
+      "endHour": 14,
+      "multiplier": 2.0
+    },
+    "weekend": {
+      "startDay": 5,
+      "startHour": 18,
+      "endDay": 0,
+      "multiplier": 1.5
+    }
+  }
+}
