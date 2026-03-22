@@ -9,7 +9,7 @@ interface HeaderProps {
 
 const Header = ({ onReturnHome }: HeaderProps) => (
   <header className="game-header">
-    <a href="https://mybrickstore.sytes.net" className="header-link">retour boutique</a>
+    <a href="https://mybrickstore.duckdns.org" className="header-link">retour boutique</a>
     <span className="header-separator">|</span>
     <a href="/loyalty" className="header-link">mes points</a>
     <span className="header-separator">|</span>

@@ -1,15 +1,17 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
-// interface for game history document
+// interface pour le document d'historique de jeu
 export interface IGameHistory extends Document {
   loyalty_id: string;
   gameId: string;
   score: number;
   pointsEarned: number;
+  mode: string;
+  result: string;
   playedAt: Date;
 }
 
-// schema to store each game session played by a user
+// schema pour stocker chaque session de jeu jouee par un utilisateur avec le mode et le resultat
 const GameHistorySchema: Schema = new Schema(
   {
     loyalty_id: { 
@@ -19,7 +21,7 @@ const GameHistorySchema: Schema = new Schema(
     },
     gameId: { 
       type: String, 
-      required: true // 'reproduction' or 'tetris'
+      required: true // 'reproduction' ou 'tetris'
     },
     score: { 
       type: Number, 
@@ -28,6 +30,16 @@ const GameHistorySchema: Schema = new Schema(
     pointsEarned: { 
       type: Number, 
       required: true 
+    },
+    mode: {
+      type: String,
+      required: true,
+      default: 'solo' 
+    },
+    result: {
+      type: String,
+      required: true,
+      default: 'none',
     },
     playedAt: { 
       type: Date, 

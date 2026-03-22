@@ -1,5 +1,6 @@
+/* base container styles */
 .loyalty-container {
-  max-width: 800px;
+  max-width: 900px;
   margin: 40px auto;
   padding: 0 20px;
 }
@@ -57,32 +58,94 @@
   color: var(--lego-red);
 }
 
-.loyalty-actions {
+/* filter bar styles */
+.filters-bar {
   display: flex;
-  gap: 15px;
+  gap: 20px;
   justify-content: center;
-  align-items: center;
-  margin-top: 30px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
   flex-wrap: wrap;
 }
 
-.loyalty-message {
-  text-align: center;
-  margin-top: 20px;
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
   font-weight: bold;
-  color: #166534;
-  background: #f0fdf4;
-  padding: 15px;
+  color: var(--text-grey);
+}
+
+.filter-group select {
+  padding: 8px 12px;
   border-radius: 8px;
-  border: 1px solid #bbf7d0;
+  border: 1px solid #cbd5e1;
+  font-family: var(--font-body);
+  outline: none;
+  cursor: pointer;
 }
 
-.loyalty-message-error {
+/* stats grid styles */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.stat-card {
+  background: #f8fafc;
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.highlight-card {
+  border: 2px solid var(--lego-blue);
+  background: #f0f7ff;
+}
+
+.stat-card h4 {
+  margin: 0 0 10px 0;
+  color: var(--text-grey);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.stat-card .value {
+  font-size: 2rem;
+  font-weight: bold;
+  color: var(--lego-blue);
+  margin-bottom: 5px;
+}
+
+.stat-card .value.win, .text-win {
+  color: #166534;
+}
+
+.stat-card .value.loss, .text-loss {
   color: #991b1b;
-  background: #fef2f2;
-  border-color: #fecaca;
 }
 
+.win-loss-text {
+  font-weight: bold;
+}
+
+.stat-card small {
+  color: var(--text-grey);
+}
+
+/* history list styles */
 .loyalty-history-list {
   list-style: none;
   padding: 0;
@@ -101,4 +164,190 @@
 
 .loyalty-history-item:last-child {
   border-bottom: none;
+}
+
+/* --- achievements section styles (mybrickgames look) --- */
+
+.global-progress-container {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+
+.global-progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.global-progress-title {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  color: var(--text-dark);
+}
+
+.global-progress-stats {
+  font-weight: bold;
+  color: var(--lego-blue);
+  font-size: 1.1rem;
+}
+
+.achiev-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.achiev-tab {
+  padding: 10px 20px;
+  border: 2px solid #e2e8f0;
+  background: #ffffff;
+  border-radius: 12px;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--text-grey);
+  transition: all 0.2s;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.achiev-tab:hover {
+  border-color: var(--lego-blue);
+  color: var(--lego-blue);
+  transform: translateY(-2px);
+}
+
+.achiev-tab.active {
+  background: var(--lego-blue);
+  color: white;
+  border-color: var(--lego-blue-dark);
+  box-shadow: 0 4px 10px rgba(0, 108, 183, 0.2);
+}
+
+.achiev-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+}
+
+/* clean and modern card style */
+.achiev-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.achiev-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px rgba(0, 108, 183, 0.1);
+  border-color: var(--lego-blue);
+}
+
+.achiev-card.completed {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.achiev-card.completed:hover {
+  border-color: #22c55e;
+  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15);
+}
+
+/* left icon wrapper */
+.achiev-icon-wrapper {
+  width: 65px;
+  height: 65px;
+  background: #f1f5f9;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  flex-shrink: 0;
+  border: 1px solid #e2e8f0;
+}
+
+.achiev-card.completed .achiev-icon-wrapper {
+  background: #dcfce7;
+  border-color: #bbf7d0;
+}
+
+/* right info container */
+.achiev-info {
+  flex: 1;
+}
+
+.achiev-title {
+  margin: 0 0 4px 0;
+  font-family: var(--font-heading);
+  color: var(--text-dark);
+  font-size: 1.1rem;
+  text-transform: capitalize;
+}
+
+.achiev-objective {
+  margin: 0 0 12px 0;
+  font-size: 0.85rem;
+  color: var(--text-grey);
+}
+
+.achiev-card.completed .achiev-title {
+  color: #166534;
+}
+
+/* dynamic progress bar */
+.achiev-progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.achiev-progress-bar {
+  height: 12px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.achiev-card.completed .achiev-progress-bar {
+  background: #bbf7d0;
+}
+
+.achiev-progress-fill {
+  height: 100%;
+  background: var(--lego-blue);
+  border-radius: 6px;
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.global-fill {
+  background: var(--lego-red);
+}
+
+.achiev-card.completed .achiev-progress-fill {
+  background: #22c55e;
+}
+
+.achiev-progress-text {
+  font-size: 0.85rem;
+  color: var(--text-grey);
+  text-align: right;
+  font-weight: 600;
+}
+
+.achiev-card.completed .achiev-progress-text {
+  color: #15803d;
 }

@@ -3,24 +3,25 @@ import '../../CSS/GameOverReproduction.css';
 
 interface GameOverProps {
   score: number;
+  mode: string;
+  result: string;
+  difficulty: string;
   onRestart: () => void;
   onReturnHome: () => void;
 }
 
-const GameOverReproduction = ({ score, onRestart, onReturnHome }: GameOverProps) => {
-  // state to know if points have been saved
+const GameOverReproduction = ({ score, mode, result, difficulty, onRestart, onReturnHome }: GameOverProps) => {
+  // etat pour savoir si les points ont ete sauvegardes
   const [pointsSaved, setPointsSaved] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
 
-  // use effect to send score to backend as soon as screen is displayed
   useEffect(() => {
     const saveScore = async () => {
-      // retrieve stored loyalty id
       const loyaltyId = localStorage.getItem('loyalty_id');
       
       if (loyaltyId && !pointsSaved) {
         try {
-          // fixed api route to match the backend playerroutes.ts
+          // envoi complet avec mode et resultat pour les statistiques
           const response = await fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
             method: 'POST',
             headers: {
@@ -28,45 +29,45 @@ const GameOverReproduction = ({ score, onRestart, onReturnHome }: GameOverProps)
             },
             body: JSON.stringify({
               gameId: 'reproduction',
-              score: score
+              score: score,
+              mode: mode,
+              result: result,
+              difficulty: difficulty
             })
           });
 
           if (response.ok) {
             const data = await response.json();
-            // retrieve earned points calculated by backend
             setPointsEarned(data.pointsEarned);
             setPointsSaved(true);
-            console.log("points successfully saved:", data);
           }
         } catch (error) {
-          console.error("error while saving score:", error);
+          console.error("erreur lors de la sauvegarde du score:", error);
         }
       }
     };
 
     saveScore();
-  }, [score, pointsSaved]);
+  }, [score, mode, result, difficulty, pointsSaved]);
 
   return (
-    <div className="game-over-container">
-      <h2>partie terminée !</h2>
+    <div className="reproduction-gameover-panel">
+      <h2 className="reproduction-gameover-title">partie terminée !</h2>
       <div className="score-display">
-        <p>votre score : <strong>{score}</strong></p>
+        <p className="reproduction-gameover-text">précision de la reproduction : <strong>{score}%</strong></p>
         
-        {/* dynamic display of earned points once confirmed by backend */}
         {pointsSaved ? (
-          <p className="points-earned">
-            vous avez gagné <strong>{pointsEarned}</strong> points de fidélité !
+          <p style={{ color: 'var(--lego-red)', fontWeight: 'bold' }}>
+            +{pointsEarned} points de fidélité gagnés !
           </p>
         ) : (
-          <p className="points-saving">sauvegarde de vos points en cours...</p>
+          <p>sauvegarde en cours...</p>
         )}
       </div>
 
-      <div className="game-over-actions">
-        <button onClick={onRestart} className="btn-restart">rejouer</button>
-        <button onClick={onReturnHome} className="btn-home">retour au menu</button>
+      <div style={{ marginTop: '15px' }}>
+        <button onClick={onRestart} className="btn-lego btn-blue" style={{ width: 'auto', marginRight: '10px' }}>rejouer</button>
+        <button onClick={onReturnHome} className="btn-lego btn-red" style={{ width: 'auto' }}>quitter</button>
       </div>
     </div>
   );

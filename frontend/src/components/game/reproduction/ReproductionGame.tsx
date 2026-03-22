@@ -7,8 +7,9 @@ import DifficultySelector, { type Difficulty } from './DifficultySelector';
 import TargetModel from './TargetModel';
 import GameOverReproduction from './GameOverReproduction';
 import ActiveBrick from './ActiveBrick';
+import { Socket } from 'socket.io-client';
 
-// configuration des difficultes
+// configuration des niveaux
 const LEVEL_CONFIG = {
   easy: { maxLevels: 3, label: 'facile (8x8)' },
   normal: { maxLevels: 3, label: 'moyen (10x10)' },
@@ -17,9 +18,12 @@ const LEVEL_CONFIG = {
 
 interface ReproductionGameProps {
   roomCode?: string;
+  socket?: Socket; 
+  initialDifficulty?: string;
+  isHost?: boolean;
 }
 
-const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
+const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: ReproductionGameProps) => {
   const [levelPath, setLevelPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState(10);
@@ -35,43 +39,17 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
   const [score, setScore] = useState(0);
   const [hoverPos, setHoverPos] = useState<{ r: number, c: number } | null>(null);
 
-  const scoreSubmitted = useRef(false);
+  // état de l'adversaire
+  const [opponentBricks, setOpponentBricks] = useState<BrickObj[]>([]);
+  const [opponentScore, setOpponentScore] = useState<number>(0);
+  
+  const gameStartedRef = useRef(false);
 
-  // envoi automatique des points au backend quand la partie se termine
-  useEffect(() => {
-    // NOUVEAU : On vérifie que le verrou est ouvert
-    if (gameOver && !scoreSubmitted.current) {
-      scoreSubmitted.current = true; // NOUVEAU : On ferme le verrou instantanément
-
-      const maxPossibleCells = targetBricks.reduce((acc, b) => acc + (b.w * b.h), 0);
-      const percentage = Math.round((score / maxPossibleCells) * 100);
-      
-      let loyaltyId = localStorage.getItem('loyalty_id');
-      if (!loyaltyId) {
-        loyaltyId = 'visitor_' + Math.random().toString(36).substring(2, 9);
-        localStorage.setItem('loyalty_id', loyaltyId);
-      }
-
-      fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          gameId: 'reproduction', 
-          score: percentage,
-          difficulty: levelPath?.split('/')[1] || 'normal'
-        })
-      }).catch(err => console.error("Erreur d'envoi du score:", err));
-    }
-  }, [gameOver, score, targetBricks, levelPath]);
-
-  // charger le niveau de jeu (le meme pour les 2 joueurs s'ils choisissent la meme difficulte)
+  // charger le niveau de jeu
   const startGame = (diff: Difficulty) => {
     setLoading(true);
-
-    scoreSubmitted.current = false;
     
     const max = LEVEL_CONFIG[diff].maxLevels;
-    
     const rngLevel = roomCode ? createSeededRNG(roomCode + "level") : Math.random;
     const randomId = Math.floor(rngLevel() * max) + 1; 
     
@@ -82,7 +60,15 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
     setTurnIndex(0);
   };
 
-  // recuperer les details du niveau au montage
+  // démarrage auto si l'hôte a choisi la difficulté
+  useEffect(() => {
+    if (initialDifficulty && !levelPath && !gameStartedRef.current) {
+      gameStartedRef.current = true;
+      startGame(initialDifficulty as Difficulty);
+    }
+  }, [initialDifficulty, levelPath]);
+
+  // récupérer les détails du niveau au montage
   useEffect(() => {
     if (!levelPath) return;
 
@@ -122,7 +108,6 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
         setCols(maxC);
         setTargetBricks(parsedBricks);
 
-        // melange deterministe des briques base sur le code du salon
         const rngShuffle = roomCode ? createSeededRNG(roomCode + levelPath) : Math.random;
         const initialQueue = parsedBricks
           .map(b => ({ w: b.w, h: b.h, color: b.color }))
@@ -138,7 +123,66 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
       });
   }, [levelPath, roomCode]);
 
-  // passer a la brique suivante dans la file
+  // gérer la réception de l'état de l'adversaire
+  useEffect(() => {
+    if (!socket) return;
+    const handleReceiveState = (data: any) => {
+       setOpponentBricks(data.placedBricks || []);
+       setOpponentScore(data.score || 0);
+       
+       // si le joueur est l'invité et qu'il reçoit la difficulté de l'hôte
+       if (!isHost && data.difficulty && !gameStartedRef.current) {
+           gameStartedRef.current = true;
+           startGame(data.difficulty as Difficulty);
+       }
+    };
+    
+    socket.on('receive_repro_state', handleReceiveState);
+    // on écoute aussi l'événement tetris au cas où le backend ne relaie que celui-là
+    socket.on('receive_tetris_state', handleReceiveState);
+    
+    return () => {
+      socket.off('receive_repro_state', handleReceiveState);
+      socket.off('receive_tetris_state', handleReceiveState);
+    };
+  }, [socket, isHost]);
+
+  // gérer l'envoi de son propre état
+  useEffect(() => {
+    if (!socket || !roomCode || targetBricks.length === 0) return;
+    
+    // calculer le pourcentage actuel à partager avec l'adversaire
+    let currentCorrect = 0;
+    const currentGridMap = Array(rows).fill(null).map(() => Array(cols).fill(null));
+    placedBricks.forEach(b => {
+      for(let i=0; i<b.h; i++) for(let j=0; j<b.w; j++) currentGridMap[b.y + i][b.x + j] = b.color;
+    });
+    const targetGridMap = Array(rows).fill(null).map(() => Array(cols).fill(null));
+    targetBricks.forEach(b => {
+      for(let i=0; i<b.h; i++) for(let j=0; j<b.w; j++) targetGridMap[b.y + i][b.x + j] = b.color;
+    });
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (currentGridMap[r][c] === targetGridMap[r][c] && currentGridMap[r][c] !== null) currentCorrect++;
+      }
+    }
+    const targetTotalArea = targetBricks.reduce((acc, b) => acc + (b.w * b.h), 0);
+    const currentPercentage = targetTotalArea > 0 ? Math.round((currentCorrect / targetTotalArea) * 100) : 0;
+    const currentDifficulty = levelPath?.split('/')[1] || 'normal';
+
+    const payload = { 
+        roomCode, 
+        placedBricks, 
+        score: currentPercentage,
+        difficulty: currentDifficulty
+    };
+
+    socket.emit('send_repro_state', payload);
+    // on utilise aussi le canal tetris pour forcer le backend à relayer la difficulté à l'invité
+    socket.emit('send_tetris_state', payload);
+  }, [placedBricks, socket, roomCode, targetBricks, rows, cols, levelPath]);
+
+  // passer à la brique suivante dans la file
   const nextTurn = (newPlaced: BrickObj[], currentQueue: Omit<BrickObj, 'x' | 'y'>[]) => {
     const newQueue = [...currentQueue];
     newQueue.shift(); 
@@ -150,7 +194,6 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
     }
   };
 
-  // definir l'etat de la position de survol
   const handleCellHover = (r: number, c: number) => {
     if (gameOver || !currentBrick) return;
     if (r + currentBrick.h > rows || c + currentBrick.w > cols) {
@@ -160,7 +203,6 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
     setHoverPos({ r, c });
   };
 
-  // gerer le depot de la brique sur la grille
   const handleCellDrop = (r: number, c: number) => {
     if (gameOver || !currentBrick) return;
     if (r + currentBrick.h > rows || c + currentBrick.w > cols) return; 
@@ -173,7 +215,6 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
     nextTurn(newPlaced, queue);
   };
 
-  // jouer un coup aleatoire automatiquement a la fin du temps imparti
   const handleTimeout = () => {
     if (gameOver || !currentBrick) return;
     const validCells: {r: number, c: number}[] = [];
@@ -198,7 +239,6 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
     }
   };
 
-  // verifier le score final par rapport a la cible
   const endGame = (finalBricks: BrickObj[]) => {
     setGameOver(true);
     setCurrentBrick(null);
@@ -220,53 +260,110 @@ const ReproductionGame = ({ roomCode }: ReproductionGameProps) => {
       }
     }
     setScore(correct);
-    
   };
 
-  // afficher le selecteur de difficulte si aucun niveau n'est choisi
   if (!levelPath) {
+    if (roomCode && !isHost) {
+      return (
+        <div className="reproduction-diff-container">
+          <h2 className="reproduction-diff-title">reproduction</h2>
+          <h3 style={{marginTop: "50px", color: "var(--lego-blue)"}}>en attente de la configuration de l'hôte... ⏳</h3>
+        </div>
+      );
+    }
+    if (initialDifficulty) {
+      return <h2 style={{marginTop: "50px", color: "var(--lego-blue)"}}>préparation du niveau... ⏳</h2>;
+    }
     return <DifficultySelector onSelect={startGame} />;
   }
 
-  // afficher l'etat de chargement
   if (loading) return <h2>chargement du niveau... ⏳</h2>;
 
   const currentPreview = currentBrick ? [{ x: 0, y: 0, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color }] : undefined;
 
-  return (
-    <div style={{ textAlign: 'center' }}>
-      <h2 style={{ color: 'var(--lego-blue)', marginBottom: '10px' }}>reproduction ({rows}x{cols})</h2>
+  // déterminer les statistiques pour l'envoi à la base de données
+  const targetTotalArea = targetBricks.reduce((acc, b) => acc + (b.w * b.h), 0);
+  const percentage = targetTotalArea > 0 ? Math.round((score / targetTotalArea) * 100) : 0;
+  const mode = roomCode ? 'multi' : 'solo';
+  
+  // calculer la victoire en multijoueur ou en solo
+  let result = 'none';
+  if (mode === 'multi') {
+      if (percentage > opponentScore) result = 'win';
+      else if (percentage < opponentScore) result = 'loss';
+      else result = 'draw';
+  } else {
+      result = percentage >= 80 ? 'win' : 'loss';
+  }
+  
+  const difficulty = levelPath?.split('/')[1] || 'normal';
 
-      {/* on passe les targetbricks au lieu du chemin de l'image */}
+  return (
+    <div className="reproduction-container">
+      <h2 className="reproduction-title">reproduction ({rows}x{cols})</h2>
+
       <TargetModel targetBricks={targetBricks} rows={rows} cols={cols} />
 
-      {!gameOver ? (
-        <>
-          <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
-          
-          <ActiveBrick currentBrick={currentBrick} onDragEnd={() => setHoverPos(null)} />
+      <div className="reproduction-layout">
+        <div className="reproduction-main">
+          {!gameOver ? (
+            <>
+              <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
+              <ActiveBrick currentBrick={currentBrick} onDragEnd={() => setHoverPos(null)} />
+              <br />
+              <Board 
+                rows={rows} 
+                cols={cols} 
+                bricks={placedBricks} 
+                onCellDrop={handleCellDrop} 
+                onCellHover={handleCellHover}
+                onMouseLeave={() => setHoverPos(null)}
+                previewBricks={currentPreview}
+                hoverPos={hoverPos}
+                cellSize={30} 
+              />
+            </>
+          ) : (
+            <div className="reproduction-gameover-panel">
+               <GameOverReproduction 
+                score={percentage} 
+                mode={mode}
+                result={result}
+                difficulty={difficulty}
+                onRestart={() => window.location.reload()} 
+                onReturnHome={() => { window.location.href = '/'; }}
+              />
+              {roomCode && (
+                  <div className="multiplayer-result">
+                    <p className={`result-msg ${result}`}>
+                      {result === 'win' ? "🏆 vous avez gagné ! 🏆" : (result === 'loss' ? "❌ vous avez perdu... ❌" : "🤝 c'est une égalité ! 🤝")}
+                    </p>
+                  </div>
+              )}
+            </div>
+          )}
+        </div>
 
-          <br />
-          
-         <Board 
-            rows={rows} 
-            cols={cols} 
-            bricks={placedBricks} 
-            onCellDrop={handleCellDrop} 
-            onCellHover={handleCellHover}
-            onMouseLeave={() => setHoverPos(null)}
-            previewBricks={currentPreview}
-            hoverPos={hoverPos}
-            cellSize={30} 
-          />
-        </>
-      ) : (
-        <GameOverReproduction 
-          score={score} 
-          onRestart={() => window.location.reload()} 
-          onReturnHome={() => window.location.href = '/'}
-        />
-      )}
+        {/* panneau de l'adversaire pour le mode multijoueur */}
+        {socket && roomCode && (
+          <div className="reproduction-opponent">
+            <h3 className="reproduction-opponent-title">adversaire ⚔️</h3>
+            <div className="reproduction-opponent-score">
+              précision : {opponentScore}%
+            </div>
+
+            <div className="reproduction-opponent-label">grille :</div>
+            <Board 
+              rows={rows}
+              cols={cols}
+              bricks={opponentBricks}
+              cellSize={15}
+              gridClassName="reproduction-opponent-grid-style"
+            />
+          </div>
+        )}
+
+      </div>
     </div>
   );
 };

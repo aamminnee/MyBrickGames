@@ -6,13 +6,11 @@ import { Socket } from 'socket.io-client';
 import { gridToBricks, shapeToBricks, createSeededRNG } from '../../../utils/gameUtils';
 import '../../CSS/GameTetris.css'; 
 
-// interface de forme
 interface Piece {
   shape: number[][];
   color: string;
 }
 
-// interface des proprietes
 interface TetrisProps {
   initialLevelData?: {
     queue?: Piece[];
@@ -23,7 +21,6 @@ interface TetrisProps {
   roomCode?: string;
 }
 
-// configuration des points et poids des couleurs
 const colorConfig: Record<string, { weight: number; points: number; name: string }> = {
   '#D92328': { weight: 50, points: 100, name: 'rouge (commun)' },
   '#006CB7': { weight: 30, points: 250, name: 'bleu (peu commun)' },
@@ -31,7 +28,6 @@ const colorConfig: Record<string, { weight: number; points: number; name: string
   '#237841': { weight: 5, points: 1000, name: 'vert (légendaire)' }
 };
 
-// tableaux des formes de blocs
 const SHAPES = [
   [[1, 1, 1, 1]], 
   [[1, 1], [1, 1]], 
@@ -42,12 +38,10 @@ const SHAPES = [
   [[1, 1, 0], [0, 1, 1]]  
 ];
 
-// pivoter la matrice 2d de 90 degres
 const getRotatedShape = (shape: number[][]) => {
   return shape[0].map((_, index) => shape.map(row => row[index]).reverse());
 };
 
-// choisir une couleur aleatoire (utilise le rng fourni pour la synchro)
 const getRandomColor = (rng: () => number = Math.random) => {
   const totalWeight = Object.values(colorConfig).reduce((sum, config) => sum + config.weight, 0);
   let random = rng() * totalWeight;
@@ -66,31 +60,8 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
   const [gameOver, setGameOver] = useState(false);
   const [turnIndex, setTurnIndex] = useState(0);
   
-  // NOUVEAU : On crée le verrou pour le score
   const scoreSubmitted = useRef(false);
   
-  // envoi automatique des points au backend quand la partie se termine
-  useEffect(() => {
-    // CORRECTION : On vérifie que le verrou est bien ouvert (!scoreSubmitted.current)
-    if (gameOver && !scoreSubmitted.current) {
-      
-      // On VERROUILLE immédiatement !
-      scoreSubmitted.current = true;
-
-      let loyaltyId = localStorage.getItem('loyalty_id');
-      if (!loyaltyId) {
-        loyaltyId = 'visitor_' + Math.random().toString(36).substring(2, 9);
-        localStorage.setItem('loyalty_id', loyaltyId);
-      }
-
-      fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ gameId: 'tetris', score: score })
-      }).catch(err => console.error("erreur d'envoi du score:", err));
-    }
-  }, [gameOver, score]);
-
   const [isDragging, setIsDragging] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dragOverPos, setDragOverPos] = useState<{ r: number; c: number } | null>(null);
@@ -102,13 +73,45 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
   const rows = initialLevelData?.rows || 8;
   const cols = initialLevelData?.cols || 8;
 
-  // initialiser les pieces de facon synchronisee
+  // send score and stats on game over
   useEffect(() => {
-    // utilise le roomcode pour initialiser le meme generateur chez les 2 joueurs
+    if (gameOver && !scoreSubmitted.current) {
+      scoreSubmitted.current = true;
+
+      // determine mode and final result for stats
+      const mode = roomCode ? 'multi' : 'solo';
+      let result = 'none';
+      if (mode === 'multi') {
+          if (score > opponentScore) result = 'win';
+          else if (score < opponentScore) result = 'loss';
+          else result = 'draw';
+      } else {
+          // in solo, consider the game validated and won if score > 0
+          result = score > 0 ? 'win' : 'loss';
+      }
+
+      let loyaltyId = localStorage.getItem('loyalty_id');
+      if (!loyaltyId) {
+        loyaltyId = 'visitor_' + Math.random().toString(36).substring(2, 9);
+        localStorage.setItem('loyalty_id', loyaltyId);
+      }
+
+      fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            gameId: 'tetris', 
+            score: score,
+            mode: mode,
+            result: result
+        })
+      }).catch(err => console.error("erreur d'envoi du score:", err));
+    }
+  }, [gameOver, score, opponentScore, roomCode]);
+
+  useEffect(() => {
     const rng = roomCode ? createSeededRNG(roomCode) : Math.random;
 
-    // on genere 2000 pieces d'un coup pour etre sur de ne pas manquer de briques
-    // sans avoir a les regenerer en cours de partie
     const randomQueue = Array.from({ length: 2000 }, () => ({
       shape: SHAPES[Math.floor(rng() * SHAPES.length)],
       color: getRandomColor(rng)
@@ -124,10 +127,8 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     setQueue(finalQueue);
   }, [initialLevelData, rows, cols, roomCode]);
 
-  // gerer les donnees du socket
   useEffect(() => {
     if (!socket) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleReceiveState = (data: any) => {
       setOpponentBoard(data.board);
       setOpponentScore(data.score);
@@ -138,13 +139,11 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     };
   }, [socket]);
 
-  // emettre les changements d'etat
   useEffect(() => {
     if (!socket || !roomCode || board.length === 0) return;
     socket.emit('send_tetris_state', { roomCode, board, availablePieces, score });
   }, [board, availablePieces, score, socket, roomCode]);
 
-  // rotation de la piece
   const handleRotate = (index: number, e?: React.MouseEvent) => {
     if (e) {
       e.preventDefault();
@@ -159,7 +158,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     setAvailablePieces(newAvailablePieces);
   };
 
-  // verifier les placements valides
   const isValidPlacement = (checkBoard: (string | null)[][], startR: number, startC: number, shape: number[][]) => {
     for (let r = 0; r < shape.length; r++) {
       for (let c = 0; c < shape[r].length; c++) {
@@ -180,7 +178,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     return true;
   };
 
-  // verifier si la partie est terminee
   const canPlaceAnywhere = (checkBoard: (string | null)[][], piece: Piece) => {
     let currentShape = piece.shape;
     for (let rot = 0; rot < 4; rot++) {
@@ -194,7 +191,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     return false;
   };
 
-  // logique pour placer une piece
   const placePiece = (startR: number, startC: number, pieceIndex: number) => {
     const piece = availablePieces[pieceIndex];
     if (!piece) return;
@@ -212,7 +208,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     const clearedColors: string[] = [];
     const cellsToClear: { r: number; c: number }[] = [];
 
-    // nettoyage des lignes
     for (let r = 0; r < rows; r++) {
       const firstColor = newBoard[r][0];
       if (firstColor) {
@@ -224,7 +219,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
       }
     }
 
-    // nettoyage des colonnes
     for (let c = 0; c < cols; c++) {
       const firstColor = newBoard[0][c];
       if (firstColor) {
@@ -261,10 +255,8 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     let currentQueue = [...queue];
     let isOver = false;
 
-    // recharger une piece depuis la longue file
     if (newAvailable.every(p => p === null)) {
       if (currentQueue.length < 1) {
-        // file de securite au cas improbable ou 2000 pieces ne suffisent pas
         const fallbackRng = roomCode ? createSeededRNG(roomCode + "fallback") : Math.random;
         const morePieces = Array.from({ length: 100 }, () => ({
           shape: SHAPES[Math.floor(fallbackRng() * SHAPES.length)],
@@ -286,7 +278,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     setTurnIndex(prev => prev + 1);
   };
 
-  // gestionnaire de fin de minuterie
   const handleTimeout = () => {
     if (gameOver) return;
     const pieceIndex = availablePieces.findIndex(p => p !== null);
@@ -303,7 +294,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     }
 
     if (validPositions.length > 0) {
-      // utiliser le generateur synchro meme pour le placement par defaut du temps ecoule
       const timeoutRng = roomCode ? createSeededRNG(roomCode + turnIndex) : Math.random;
       const pos = validPositions[Math.floor(timeoutRng() * validPositions.length)];
       placePiece(pos.r, pos.c, pieceIndex);
@@ -316,7 +306,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
   const adjustedR = dragOverPos ? dragOverPos.r - dragOffset.r : 0;
   const adjustedC = dragOverPos ? dragOverPos.c - dragOffset.c : 0;
 
-  // commencer a glisser
   const handleDragStart = (e: React.DragEvent, index: number) => {
     if (gameOver) e.preventDefault();
     setIsDragging(true);
@@ -326,19 +315,16 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     }
   };
 
-  // fin du glissement
   const handleDragEnd = () => {
     setIsDragging(false);
     setDraggingIndex(null);
     setDragOverPos(null);
   };
 
-  // gestion du survol
   const handleCellHover = (r: number, c: number) => {
     setDragOverPos({ r, c });
   };
 
-  // gestion du depot
   const handleCellDrop = (r: number, c: number) => {
     setIsDragging(false);
     setDragOverPos(null);
@@ -429,11 +415,18 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
               <h2 className="tetris-gameover-title">partie terminée !</h2>
               <p className="tetris-gameover-text">plus aucun bloc ne peut être placé.</p>
               <p className="tetris-gameover-text">votre score final est de : <strong>{score}</strong> points</p>
+              
+              {roomCode && (
+                  <p className="tetris-gameover-text" style={{ marginTop: '15px' }}>
+                      {score > opponentScore ? "🏆 vous avez gagné ! 🏆" : (score < opponentScore ? "❌ vous avez perdu... ❌" : "🤝 c'est une égalité ! 🤝")}
+                  </p>
+              )}
+
               <button 
                 className="btn-lego btn-blue tetris-gameover-btn" 
                 onClick={() => window.location.reload()}
               >
-                rejouer
+                quitter
               </button>
             </div>
           )}

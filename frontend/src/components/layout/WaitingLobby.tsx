@@ -1,6 +1,6 @@
 import { Socket } from 'socket.io-client';
 import ChatBox from '../chat/ChatBox';
-import '../CSS/WaitingLobby.css'; // import du css
+import '../CSS/WaitingLobby.css'; // import css
 
 interface WaitingLobbyProps {
   roomCode: string;
@@ -8,11 +8,13 @@ interface WaitingLobbyProps {
   guestArrived: boolean;
   selectedGame: string;
   setSelectedGame: (game: string) => void;
+  difficulty: string;
+  setDifficulty: (diff: string) => void;
   onStartGame: () => void;
   socket: Socket;
 }
 
-const WaitingLobby = ({ roomCode, isHost, guestArrived, selectedGame, setSelectedGame, onStartGame, socket }: WaitingLobbyProps) => (
+const WaitingLobby = ({ roomCode, isHost, guestArrived, selectedGame, setSelectedGame, difficulty, setDifficulty, onStartGame, socket }: WaitingLobbyProps) => (
   <div className="lobby-container">
     <div className="game-card lobby-card">
       <h2>salon d'attente</h2>
@@ -35,13 +37,30 @@ const WaitingLobby = ({ roomCode, isHost, guestArrived, selectedGame, setSelecte
             className="lego-input" 
             value={selectedGame} 
             onChange={(e) => setSelectedGame(e.target.value)} 
-            style={{ marginBottom: '25px', cursor: 'pointer' }}
+            style={{ marginBottom: '15px', cursor: 'pointer' }}
           >
             <option value="reproduction">🖼️ jeu 1 : reproduction de mosaïque</option>
             <option value="tetris">🧱 jeu 2 : casse-briques lego</option>
           </select>
+
+          {/* host chooses difficulty for reproduction game */}
+          {selectedGame === 'reproduction' && (
+            <>
+              <h4 style={{ marginBottom: '10px', color: 'var(--text-grey)' }}>difficulté :</h4>
+              <select 
+                className="lego-input" 
+                value={difficulty} 
+                onChange={(e) => setDifficulty(e.target.value)} 
+                style={{ marginBottom: '25px', cursor: 'pointer' }}
+              >
+                <option value="easy">facile (8x8)</option>
+                <option value="normal">moyen (10x10)</option>
+                <option value="hard">difficile (12x12)</option>
+              </select>
+            </>
+          )}
           
-          <button className="btn-lego btn-red" onClick={onStartGame} disabled={!guestArrived}>
+          <button className="btn-lego btn-red" onClick={onStartGame} disabled={!guestArrived} style={{ marginTop: selectedGame === 'tetris' ? '10px' : '0' }}>
             lancer la partie ! 🚀
           </button>
         </>

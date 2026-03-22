@@ -1,10 +1,10 @@
-// file : src/controllers/playercontroller.ts
+// fichier : src/controllers/playercontroller.ts
 import { Request, Response } from 'express';
 import { Player } from '../models/Player';
 import GameHistory from '../models/GameHistory';
 import policy from '../config/pointsPolicy.json';
 
-// helper to calculate total valid points
+// utilitaire pour calculer le total des points valides
 const getValidPoints = (player: any): number => {
   const now = new Date();
   return player.loyaltyPoints
@@ -12,18 +12,18 @@ const getValidPoints = (player: any): number => {
     .reduce((total: number, batch: any) => total + batch.amount, 0);
 };
 
-// Vérifie si on est en Happy Hour ou en Week-end
+// verifie si on est en happy hour ou en week-end
 const getDynamicMultiplier = (): number => {
     const now = new Date();
-    const day = now.getDay(); // 0 = Dimanche, 1 = Lundi, ..., 5 = Vendredi, 6 = Samedi
+    const day = now.getDay(); 
     const hour = now.getHours();
 
-    // 1. Check Happy Hour (ex: 12h à 14h)
+    // 1. verification happy hour
     if (hour >= policy.dynamicBoosts.happyHour.startHour && hour < policy.dynamicBoosts.happyHour.endHour) {
         return policy.dynamicBoosts.happyHour.multiplier;
     }
 
-    // 2. Check Week-end (Vendredi soir au Dimanche soir)
+    // 2. verification week-end 
     const isFridayEvening = day === policy.dynamicBoosts.weekend.startDay && hour >= policy.dynamicBoosts.weekend.startHour;
     const isSaturday = day === 6;
     const isSunday = day === policy.dynamicBoosts.weekend.endDay;
@@ -32,17 +32,16 @@ const getDynamicMultiplier = (): number => {
         return policy.dynamicBoosts.weekend.multiplier;
     }
 
-    // Aucun boost
     return 1.0;
 };
 
-// get player points (used by php and react)
+// recuperer les points du joueur
 export const getPlayerPoints = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
 
     if (!loyaltyId) {
-      res.status(400).json({ error: "loyalty id is required" });
+      res.status(400).json({ error: "id de fidelite requis" });
       return;
     }
 
@@ -51,6 +50,15 @@ export const getPlayerPoints = async (req: Request, res: Response): Promise<void
     if (!player) {
       player = new Player({ loyaltyId: loyaltyId, loyaltyPoints: [] });
       await player.save();
+    } else {
+        const now = new Date();
+        const initialCount = player.loyaltyPoints.length;
+        
+        player.loyaltyPoints = player.loyaltyPoints.filter((batch: any) => batch.expirationDate > now);
+        
+        if (player.loyaltyPoints.length !== initialCount) {
+            await player.save();
+        }
     }
 
     res.json({
@@ -59,25 +67,25 @@ export const getPlayerPoints = async (req: Request, res: Response): Promise<void
     });
 
   } catch (error) {
-    console.error("error in getplayerpoints:", error);
-    res.status(500).json({ error: "server error while fetching player" });
+    console.error("erreur dans getplayerpoints:", error);
+    res.status(500).json({ error: "erreur serveur lors de la recuperation du joueur" });
   }
 };
 
-// consume points for a discount voucher (called by php site)
+// consommer des points
 export const consumePoints = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
     const { pointsToConsume } = req.body;
 
     if (!pointsToConsume || pointsToConsume <= 0) {
-      res.status(400).json({ error: "invalid points amount" });
+      res.status(400).json({ error: "montant de points invalide" });
       return;
     }
 
     const player = await Player.findOne({ loyaltyId: loyaltyId });
     if (!player) {
-      res.status(404).json({ error: "player not found" });
+      res.status(404).json({ error: "joueur non trouve" });
       return;
     }
 
@@ -87,7 +95,7 @@ export const consumePoints = async (req: Request, res: Response): Promise<void> 
     const totalValidPoints = getValidPoints(player);
 
     if (totalValidPoints < pointsToConsume) {
-      res.status(400).json({ error: "not enough valid points" });
+      res.status(400).json({ error: "pas assez de points valides" });
       return;
     }
 
@@ -114,36 +122,36 @@ export const consumePoints = async (req: Request, res: Response): Promise<void> 
     await player.save();
 
     res.json({
-      message: "points consumed successfully",
+      message: "points consommes avec succes",
       remainingPoints: getValidPoints(player)
     });
 
   } catch (error) {
-    console.error("error in consumepoints:", error);
-    res.status(500).json({ error: "server error while consuming points" });
+    console.error("erreur dans consumepoints:", error);
+    res.status(500).json({ error: "erreur serveur lors de la consommation des points" });
   }
 };
 
-// add a game result and award points (LA FONCTION MISE À JOUR)
+// enregistrer une partie avec prise en compte du mode et du resultat
 export const addGameResult = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
-    const { gameId, score, difficulty } = req.body;
+    // on recupere desormais le mode et le resultat depuis le front
+    const { gameId, score, difficulty, mode = 'solo', result = 'none' } = req.body;
 
     const now = new Date();
     const pointsBatches: { amount: number, expirationDate: Date }[] = [];
     let totalPointsEarned = 0;
 
-    // --- 1. PRIME DE PARTICIPATION POUR TOUS ---
+    // 1. prime de participation
     const partDate = new Date(now);
     partDate.setDate(partDate.getDate() + policy.participation.expirationDays);
     pointsBatches.push({ amount: policy.participation.points, expirationDate: partDate });
     totalPointsEarned += policy.participation.points;
 
-    // Vérifie si un boost multiplicateur est actif (Happy Hour, Weekend)
     const boost = getDynamicMultiplier();
 
-    // --- 2. CALCUL DES POINTS DE PERFORMANCE ---
+    // 2. calcul des points de performance
     let perfPoints = 0;
     let perfExpiry = 30;
 
@@ -151,11 +159,9 @@ export const addGameResult = async (req: Request, res: Response): Promise<void> 
         const diffKey = difficulty as keyof typeof policy.reproduction.multipliers;
         const mult = policy.reproduction.multipliers[diffKey] || 1;
         
-        // Calcul : Score * Multiplicateur * Boost
         perfPoints = Math.floor(score * mult * boost);
         perfExpiry = policy.reproduction.expirationDays;
 
-        // Bonus de perfection (100% de réussite)
         if (score >= 100) {
             const bonusDate = new Date(now);
             bonusDate.setDate(bonusDate.getDate() + policy.reproduction.perfectBonus.expirationDays);
@@ -164,23 +170,20 @@ export const addGameResult = async (req: Request, res: Response): Promise<void> 
         }
 
     } else if (gameId === 'tetris') {
-        // Tetris
         perfPoints = Math.floor((score / policy.tetris.scoreDivisor) * boost);
         perfExpiry = policy.tetris.expirationDays;
 
-        // Succès / Paliers Tetris
         for (const achievement of policy.tetris.achievements) {
             if (score >= achievement.threshold) {
                 const bonusDate = new Date(now);
                 bonusDate.setDate(bonusDate.getDate() + achievement.expirationDays);
                 pointsBatches.push({ amount: achievement.bonus, expirationDate: bonusDate });
                 totalPointsEarned += achievement.bonus;
-                break; // On ne donne que la plus grosse récompense atteinte
+                break; 
             }
         }
     }
 
-    // Ajout des points de performance s'il y en a
     if (perfPoints > 0) {
         const perfDate = new Date(now);
         perfDate.setDate(perfDate.getDate() + perfExpiry);
@@ -188,17 +191,24 @@ export const addGameResult = async (req: Request, res: Response): Promise<void> 
         totalPointsEarned += perfPoints;
     }
 
-    // --- 3. SAUVEGARDE EN BASE DE DONNÉES ---
+    // 3. sauvegarde en base de donnees avec stats
     const history = new GameHistory({
       loyalty_id: loyaltyId,
       gameId,
       score,
       pointsEarned: totalPointsEarned,
+      mode,
+      result,
       playedAt: new Date()
     });
     await history.save();
 
-    // On utilise $each pour insérer d'un coup la participation, la performance et les éventuels bonus
+    let player = await Player.findOne({ loyaltyId: loyaltyId });
+    if (player) {
+      player.loyaltyPoints = player.loyaltyPoints.filter((batch: any) => batch.expirationDate > now);
+      await player.save();
+    }
+
     const updatedPlayer = await Player.findOneAndUpdate(
       { loyaltyId: loyaltyId },
       { $push: { loyaltyPoints: { $each: pointsBatches } } },
@@ -206,25 +216,113 @@ export const addGameResult = async (req: Request, res: Response): Promise<void> 
     );
 
     res.json({
-      message: "game recorded successfully",
+      message: "partie enregistree avec succes",
       pointsEarned: totalPointsEarned,
       totalPoints: getValidPoints(updatedPlayer) 
     });
 
   } catch (error) {
-    console.error("error in addGameResult:", error);
-    res.status(500).json({ error: "server error while recording game" });
+    console.error("erreur dans addgameresult:", error);
+    res.status(500).json({ error: "erreur serveur lors de l'enregistrement de la partie" });
   }
 };
 
-// get player game history for react frontend
+// recuperer l'historique brut
 export const getPlayerHistory = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
     const history = await GameHistory.find({ loyalty_id: loyaltyId }).sort({ playedAt: -1 });
     res.json(history);
   } catch (error) {
-    console.error("error in getplayerhistory:", error);
-    res.status(500).json({ error: "server error while fetching history" });
+    console.error("erreur dans getplayerhistory:", error);
+    res.status(500).json({ error: "erreur serveur lors de la recuperation de l'historique" });
+  }
+};
+
+// nouvelle route pour recuperer les statistiques detaillees
+export const getPlayerStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
+    const history = await GameHistory.find({ loyalty_id: loyaltyId });
+
+    // initialisation de l'objet de statistiques
+    const stats = {
+      totalPlayed: history.length,
+      totalWins: 0,
+      totalLosses: 0,
+      multiWins: 0,
+      multiLosses: 0,
+      multiDraws: 0,
+      soloWins: 0,
+      soloLosses: 0,
+      reproSoloWins: 0,
+      reproMultiWins: 0,
+      reproMultiLosses: 0,
+      tetrisSoloWins: 0,
+      tetrisSoloLosses: 0,
+      tetrisMultiWins: 0,
+      tetrisMultiLosses: 0,
+      bestScores: {
+        reproSolo: 0,
+        reproMulti: 0,
+        tetrisSolo: 0,
+        tetrisMulti: 0
+      }
+    };
+
+    // parcours de l'historique pour compiler les stats
+    history.forEach(game => {
+      const isMulti = game.mode === 'multi';
+      const isSolo = game.mode === 'solo';
+      const isWin = game.result === 'win';
+      const isLoss = game.result === 'loss';
+      const isDraw = game.result === 'draw';
+      const isRepro = game.gameId === 'reproduction';
+      const isTetris = game.gameId === 'tetris';
+
+      if (isWin) stats.totalWins++;
+      if (isLoss) stats.totalLosses++;
+
+      if (isMulti) {
+        if (isWin) stats.multiWins++;
+        if (isLoss) stats.multiLosses++;
+        if (isDraw) stats.multiDraws++;
+
+        if (isRepro) {
+          if (isWin) stats.reproMultiWins++;
+          if (isLoss) stats.reproMultiLosses++;
+          if (game.score > stats.bestScores.reproMulti) stats.bestScores.reproMulti = game.score;
+        }
+        if (isTetris) {
+          if (isWin) stats.tetrisMultiWins++;
+          if (isLoss) stats.tetrisMultiLosses++;
+          if (game.score > stats.bestScores.tetrisMulti) stats.bestScores.tetrisMulti = game.score;
+        }
+      }
+
+      if (isSolo) {
+        if (isWin) stats.soloWins++;
+        if (isLoss) stats.soloLosses++;
+
+        if (isRepro) {
+          if (isWin) stats.reproSoloWins++;
+          if (game.score > stats.bestScores.reproSolo) stats.bestScores.reproSolo = game.score;
+        }
+        if (isTetris) {
+          if (isWin) stats.tetrisSoloWins++;
+          if (isLoss) stats.tetrisSoloLosses++;
+          if (game.score > stats.bestScores.tetrisSolo) stats.bestScores.tetrisSolo = game.score;
+        }
+      }
+    });
+
+    // calcul du ratio de victoire en multijoueur (uniquement les parties decisives)
+    const multiTotalDecisive = stats.multiWins + stats.multiLosses;
+    const multiWinRatio = multiTotalDecisive > 0 ? (stats.multiWins / multiTotalDecisive * 100).toFixed(1) : "0.0";
+
+    res.json({ ...stats, multiWinRatio });
+  } catch (error) {
+    console.error("erreur dans getplayerstats:", error);
+    res.status(500).json({ error: "erreur serveur lors du calcul des statistiques" });
   }
 };
