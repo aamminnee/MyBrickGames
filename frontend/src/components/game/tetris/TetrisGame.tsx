@@ -4,7 +4,10 @@ import Board from '../Board';
 import DraggableBrick from '../DraggableBrick';
 import { Socket } from 'socket.io-client';
 import { gridToBricks, shapeToBricks, createSeededRNG } from '../../../utils/gameUtils';
-import '../../CSS/GameTetris.css'; 
+
+// On réutilise les superbes classes CSS et le fond du jeu Reproduction !
+import '../../CSS/ReproductionGame.css'; 
+import backgroundImage from '../../../assets/background_8bit.jpg';
 
 interface Piece {
   shape: number[][];
@@ -73,12 +76,10 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
   const rows = initialLevelData?.rows || 8;
   const cols = initialLevelData?.cols || 8;
 
-  // send score and stats on game over
+  // Sauvegarde des scores
   useEffect(() => {
     if (gameOver && !scoreSubmitted.current) {
       scoreSubmitted.current = true;
-
-      // determine mode and final result for stats
       const mode = roomCode ? 'multi' : 'solo';
       let result = 'none';
       if (mode === 'multi') {
@@ -86,7 +87,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
           else if (score < opponentScore) result = 'loss';
           else result = 'draw';
       } else {
-          // in solo, consider the game validated and won if score > 0
           result = score > 0 ? 'win' : 'loss';
       }
 
@@ -111,7 +111,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
 
   useEffect(() => {
     const rng = roomCode ? createSeededRNG(roomCode) : Math.random;
-
     const randomQueue = Array.from({ length: 2000 }, () => ({
       shape: SHAPES[Math.floor(rng() * SHAPES.length)],
       color: getRandomColor(rng)
@@ -134,9 +133,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
       setOpponentScore(data.score);
     };
     socket.on('receive_tetris_state', handleReceiveState);
-    return () => {
-      socket.off('receive_tetris_state', handleReceiveState);
-    };
+    return () => { socket.off('receive_tetris_state', handleReceiveState); };
   }, [socket]);
 
   useEffect(() => {
@@ -164,14 +161,8 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
         if (shape[r][c] === 1) {
           const targetR = startR + r;
           const targetC = startC + c;
-          
-          if (targetR < 0 || targetR >= rows || targetC < 0 || targetC >= cols) {
-            return false;
-          }
-          
-          if (checkBoard[targetR][targetC] !== null) {
-            return false;
-          }
+          if (targetR < 0 || targetR >= rows || targetC < 0 || targetC >= cols) return false;
+          if (checkBoard[targetR][targetC] !== null) return false;
         }
       }
     }
@@ -199,15 +190,14 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     
     for (let r = 0; r < piece.shape.length; r++) {
       for (let c = 0; c < piece.shape[r].length; c++) {
-        if (piece.shape[r][c] === 1) {
-          newBoard[startR + r][startC + c] = piece.color;
-        }
+        if (piece.shape[r][c] === 1) newBoard[startR + r][startC + c] = piece.color;
       }
     }
 
     const clearedColors: string[] = [];
     const cellsToClear: { r: number; c: number }[] = [];
 
+    // Vérifier les lignes
     for (let r = 0; r < rows; r++) {
       const firstColor = newBoard[r][0];
       if (firstColor) {
@@ -219,15 +209,13 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
       }
     }
 
+    // Vérifier les colonnes
     for (let c = 0; c < cols; c++) {
       const firstColor = newBoard[0][c];
       if (firstColor) {
         let isFull = true;
         for (let r = 1; r < rows; r++) {
-          if (newBoard[r][c] !== firstColor) {
-            isFull = false;
-            break;
-          }
+          if (newBoard[r][c] !== firstColor) { isFull = false; break; }
         }
         if (isFull) {
           for (let r = 0; r < rows; r++) cellsToClear.push({ r, c });
@@ -236,9 +224,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
       }
     }
 
-    cellsToClear.forEach(pos => {
-      newBoard[pos.r][pos.c] = null;
-    });
+    cellsToClear.forEach(pos => { newBoard[pos.r][pos.c] = null; });
 
     if (clearedColors.length > 0) {
       let basePointsForTurn = 0;
@@ -287,9 +273,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     const validPositions = [];
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        if (isValidPlacement(board, r, c, piece.shape)) {
-          validPositions.push({ r, c });
-        }
+        if (isValidPlacement(board, r, c, piece.shape)) validPositions.push({ r, c });
       }
     }
 
@@ -310,9 +294,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     if (gameOver) e.preventDefault();
     setIsDragging(true);
     setDraggingIndex(index);
-    if (e.dataTransfer) {
-      e.dataTransfer.effectAllowed = 'move';
-    }
+    if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
   };
 
   const handleDragEnd = () => {
@@ -321,14 +303,11 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     setDragOverPos(null);
   };
 
-  const handleCellHover = (r: number, c: number) => {
-    setDragOverPos({ r, c });
-  };
+  const handleCellHover = (r: number, c: number) => { setDragOverPos({ r, c }); };
 
   const handleCellDrop = (r: number, c: number) => {
     setIsDragging(false);
     setDragOverPos(null);
-    
     if (draggingIndex === null || !draggedPiece) return;
     
     const dropR = r - dragOffset.r;
@@ -340,37 +319,49 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     setDraggingIndex(null);
   };
 
-  if (availablePieces.every(p => p === null) && queue.length === 0) return <h2>chargement...</h2>;
+  if (availablePieces.every(p => p === null) && queue.length === 0) return <h2 style={{color: "var(--neon-cyan)", textAlign: 'center'}}>chargement...</h2>;
 
   const isValidHover = dragOverPos && draggedPiece && isValidPlacement(board, adjustedR, adjustedC, draggedPiece.shape);
   const previewBricksForBoard = isValidHover ? shapeToBricks(draggedPiece.shape, draggedPiece.color) : null;
 
   return (
-    <div className="tetris-container">
-      <h2 className="tetris-title">casse-briques (blast)</h2>
-      
-      <div className="tetris-layout">
+    <div 
+      className="repro-page-wrapper" 
+      style={{ 
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <div className="repro-layout-container">
         
-        <div className="tetris-main">
-          <div className="tetris-score">
-            score : {score}
+        {/* ⬅️ COLONNE DE GAUCHE : Score et Pioche */}
+        <div className="repro-side-panel">
+          
+          <div className="arcade-panel panel-cyan">
+            <div className="arcade-panel-header">SCORE ACTUEL</div>
+            <div className="arcade-panel-content">
+              <div style={{ fontSize: '2.5rem', color: 'var(--neon-cyan)', textShadow: '0 0 15px var(--neon-cyan)', fontFamily: 'var(--font-heading)' }}>
+                {score}
+              </div>
+            </div>
           </div>
 
-          {!gameOver ? (
-            <>
-              <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
-              
-              <div className="tetris-pool-container">
-                <h4 className="tetris-pool-title">brique disponible :</h4>
-                <div className="tetris-pool-flex">
+          {!gameOver && (
+            <div className="arcade-panel panel-magenta">
+              <div className="arcade-panel-header">BRIQUE DISPONIBLE</div>
+              <div className="arcade-panel-content">
+                <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
                   {availablePieces.map((piece, idx) => (
-                    <div key={idx} className="tetris-pool-item">
+                    <div key={idx} style={{ padding: '15px', background: '#1a1a2a', border: '1px solid #2d2d44', borderRadius: '10px', boxShadow: 'inset 0 0 20px rgba(0,0,0,0.5)' }}>
                       <DraggableBrick 
                         disabled={!piece}
                         rows={piece ? piece.shape.length : 1}
                         cols={piece ? piece.shape[0].length : 1}
                         bricks={piece ? shapeToBricks(piece.shape, piece.color) : []}
-                        cellSize={25}
+                        cellSize={40} // Agrandie pour correspondre à Reproduction
                         isDragging={isDragging && draggingIndex === idx}
                         onDragStart={(e: React.DragEvent) => handleDragStart(e, idx)}
                         onDragEnd={handleDragEnd}
@@ -380,75 +371,110 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
                     </div>
                   ))}
                 </div>
-                <p className="tetris-pool-hint">
-                  cliquez pour pivoter, glissez pour placer
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '20px', textAlign: 'center', textTransform: 'uppercase' }}>
+                  clic: pivoter | glisser: placer
                 </p>
               </div>
+            </div>
+          )}
 
-              <Board 
-                rows={rows}
-                cols={cols}
-                bricks={gridToBricks(board)}
-                onCellDrop={handleCellDrop}
-                onCellHover={handleCellHover}
-                onMouseLeave={() => setDragOverPos(null)}
-                previewBricks={previewBricksForBoard}
-                hoverPos={dragOverPos ? { r: adjustedR, c: adjustedC } : null}
-                cellSize={35}
-                gridClassName="tetris-grid-style"
-              />
+        </div>
 
-              <div className="tetris-legend">
-                <h4 className="tetris-legend-title">barème des points (par ligne) :</h4>
-                <ul className="tetris-legend-list">
+        {/* ⬇️ COLONNE CENTRALE : Grille du joueur */}
+        <div className="repro-center-panel">
+          <div className="arcade-panel panel-cyan" style={{ width: '100%' }}>
+            <div className="arcade-panel-header">CASSE-BRIQUES (BLAST) - GRILLE {rows}x{cols}</div>
+            <div className="arcade-panel-content">
+              
+              {!gameOver ? (
+                <Board 
+                  rows={rows}
+                  cols={cols}
+                  bricks={gridToBricks(board)}
+                  onCellDrop={handleCellDrop}
+                  onCellHover={handleCellHover}
+                  onMouseLeave={() => setDragOverPos(null)}
+                  previewBricks={previewBricksForBoard}
+                  hoverPos={dragOverPos ? { r: adjustedR, c: adjustedC } : null}
+                  cellSize={45} // Agrandie !
+                />
+              ) : (
+                <div className="reproduction-gameover-panel" style={{ textAlign: 'center', width: '100%' }}>
+                  <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--neon-green)', textShadow: '0 0 15px rgba(57,255,20,0.6)', fontSize: '2rem', marginBottom: '20px' }}>
+                    PARTIE TERMINÉE
+                  </h2>
+                  <p style={{ fontSize: '1.2rem', margin: '10px 0', color: '#fff' }}>votre score final est de : <strong>{score}</strong> points</p>
+                  
+                  {roomCode && (
+                    <div className="multiplayer-result" style={{ marginTop: '20px' }}>
+                      <p style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', color: score > opponentScore ? 'var(--neon-green)' : (score < opponentScore ? 'var(--neon-magenta)' : 'var(--neon-yellow)') }}>
+                        {score > opponentScore ? "🏆 VOUS AVEZ GAGNÉ ! 🏆" : (score < opponentScore ? "❌ VOUS AVEZ PERDU... ❌" : "🤝 C'EST UNE ÉGALITÉ ! 🤝")}
+                      </p>
+                    </div>
+                  )}
+
+                  <div style={{ marginTop: '30px' }}>
+                    <button 
+                      style={{ padding: '15px 30px', background: 'rgba(0,255,255,0.1)', color: 'var(--neon-cyan)', border: '2px solid var(--neon-cyan)', borderRadius: '8px', cursor: 'pointer', fontFamily: 'var(--font-heading)' }}
+                      onClick={() => window.location.reload()}
+                    >
+                      QUITTER / REJOUER
+                    </button>
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </div>
+        </div>
+
+        {/* ➡️ COLONNE DE DROITE : Chrono, Légende et Adversaire */}
+        <div className="repro-side-panel">
+          
+          {!gameOver && (
+            <div className="arcade-panel panel-yellow">
+              <div className="arcade-panel-header">TEMPS RESTANT</div>
+              <div className="arcade-panel-content">
+                <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
+              </div>
+            </div>
+          )}
+
+          {!gameOver && (
+            <div className="arcade-panel panel-magenta">
+              <div className="arcade-panel-header">BARÈME (POINTS)</div>
+              <div className="arcade-panel-content" style={{ alignItems: 'flex-start', width: '100%', padding: '20px' }}>
+                <ul style={{ listStyle: 'none', padding: 0, margin: 0, width: '100%', fontSize: '0.8rem', color: '#fff' }}>
                   {Object.entries(colorConfig).map(([color, config]) => (
-                    <li key={color} className="tetris-legend-item">
-                      <span className="tetris-legend-color" style={{ backgroundColor: color }}></span>
-                      <strong>{config.name}</strong> : {config.points} pts
+                    <li key={color} style={{ display: 'flex', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ display: 'inline-block', width: '16px', height: '16px', backgroundColor: color, marginRight: '15px', border: '1px solid rgba(255,255,255,0.4)', borderRadius: '2px' }}></span>
+                      <span>{config.name} : <span style={{ color: 'var(--neon-yellow)' }}>{config.points}</span></span>
                     </li>
                   ))}
                 </ul>
               </div>
-            </>
-          ) : (
-            <div className="tetris-gameover">
-              <h2 className="tetris-gameover-title">partie terminée !</h2>
-              <p className="tetris-gameover-text">plus aucun bloc ne peut être placé.</p>
-              <p className="tetris-gameover-text">votre score final est de : <strong>{score}</strong> points</p>
-              
-              {roomCode && (
-                  <p className="tetris-gameover-text" style={{ marginTop: '15px' }}>
-                      {score > opponentScore ? "🏆 vous avez gagné ! 🏆" : (score < opponentScore ? "❌ vous avez perdu... ❌" : "🤝 c'est une égalité ! 🤝")}
-                  </p>
-              )}
-
-              <button 
-                className="btn-lego btn-blue tetris-gameover-btn" 
-                onClick={() => window.location.reload()}
-              >
-                quitter
-              </button>
             </div>
           )}
-        </div>
 
-        {socket && roomCode && (
-          <div className="tetris-opponent">
-            <h3 className="tetris-opponent-title">adversaire ⚔️</h3>
-            <div className="tetris-opponent-score">
-              score : {opponentScore}
+          {socket && roomCode && (
+            <div className="arcade-panel panel-cyan">
+              <div className="arcade-panel-header">ADVERSAIRE ⚔️</div>
+              <div className="arcade-panel-content">
+                <div style={{ color: 'var(--neon-magenta)', marginBottom: '15px', fontFamily: 'var(--font-heading)', fontSize: '0.9rem', textShadow: '0 0 5px var(--neon-magenta)' }}>
+                  SCORE : {opponentScore}
+                </div>
+                <Board 
+                  rows={rows}
+                  cols={cols}
+                  bricks={gridToBricks(opponentBoard || Array.from({ length: rows }, () => Array(cols).fill(null)))}
+                  cellSize={18}
+                  gridClassName="reproduction-opponent-grid-style"
+                />
+              </div>
             </div>
+          )}
 
-            <div className="tetris-opponent-label">grille :</div>
-            <Board 
-              rows={rows}
-              cols={cols}
-              bricks={gridToBricks(opponentBoard || Array.from({ length: rows }, () => Array(cols).fill(null)))}
-              cellSize={15}
-              gridClassName="tetris-opponent-grid-style"
-            />
-          </div>
-        )}
+        </div>
 
       </div>
     </div>

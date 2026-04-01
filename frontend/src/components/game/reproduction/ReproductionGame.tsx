@@ -8,6 +8,9 @@ import TargetModel from './TargetModel';
 import GameOverReproduction from './GameOverReproduction';
 import ActiveBrick from './ActiveBrick';
 import { Socket } from 'socket.io-client';
+import '../../CSS/ReproductionGame.css';
+import backgroundImage from '../../../assets/arcade.jpg';
+
 
 // configuration des niveaux
 const LEVEL_CONFIG = {
@@ -272,12 +275,13 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
       );
     }
     if (initialDifficulty) {
-      return <h2 style={{marginTop: "50px", color: "var(--lego-blue)"}}>préparation du niveau... ⏳</h2>;
+    /* Correction de la couleur pour que le texte soit visible */
+      return <h2 style={{marginTop: "50px", color: "var(--neon-cyan)", textAlign: 'center'}}>préparation du niveau... ⏳</h2>;
     }
     return <DifficultySelector onSelect={startGame} />;
   }
 
-  if (loading) return <h2>chargement du niveau... ⏳</h2>;
+  if (loading) return <h2 style={{color: "var(--neon-cyan)", textAlign: 'center'}}>chargement du niveau... ⏳</h2>;
 
   const currentPreview = currentBrick ? [{ x: 0, y: 0, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color }] : undefined;
 
@@ -296,72 +300,138 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
       result = percentage >= 80 ? 'win' : 'loss';
   }
   
+
   const difficulty = levelPath?.split('/')[1] || 'normal';
 
+  // --- NOUVEAU RENDU VISUEL (3 COLONNES AVEC BEAUX CONTENEURS) ---
   return (
-    <div className="reproduction-container">
-      <h2 className="reproduction-title">reproduction ({rows}x{cols})</h2>
+    <div 
+      className="repro-page-wrapper" 
+      style={{ 
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <div className="repro-layout-container">
+        
+        {/* ⬅️ COLONNE DE GAUCHE : L'objectif et les outils */}
+        <div className="repro-side-panel">
+          
+          {/* Le panneau du modèle à reproduire */}
+          <div className="arcade-panel panel-magenta">
+            <div className="arcade-panel-header">MODÈLE CIBLE</div>
+            <div className="arcade-panel-content">
+              <TargetModel targetBricks={targetBricks} rows={rows} cols={cols} />
+            </div>
+          </div>
 
-      <TargetModel targetBricks={targetBricks} rows={rows} cols={cols} />
-
-      <div className="reproduction-layout">
-        <div className="reproduction-main">
-          {!gameOver ? (
-            <>
-              <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
-              <ActiveBrick currentBrick={currentBrick} onDragEnd={() => setHoverPos(null)} />
-              <br />
-              <Board 
-                rows={rows} 
-                cols={cols} 
-                bricks={placedBricks} 
-                onCellDrop={handleCellDrop} 
-                onCellHover={handleCellHover}
-                onMouseLeave={() => setHoverPos(null)}
-                previewBricks={currentPreview}
-                hoverPos={hoverPos}
-                cellSize={30} 
-              />
-            </>
-          ) : (
-            <div className="reproduction-gameover-panel">
-               <GameOverReproduction 
-                score={percentage} 
-                mode={mode}
-                result={result}
-                difficulty={difficulty}
-                onRestart={() => window.location.reload()} 
-                onReturnHome={() => { window.location.href = '/'; }}
-              />
-              {roomCode && (
-                  <div className="multiplayer-result">
-                    <p className={`result-msg ${result}`}>
-                      {result === 'win' ? "🏆 vous avez gagné ! 🏆" : (result === 'loss' ? "❌ vous avez perdu... ❌" : "🤝 c'est une égalité ! 🤝")}
-                    </p>
-                  </div>
-              )}
+          {/* Le panneau pour la brique actuelle */}
+          {!gameOver && (
+            <div className="arcade-panel panel-cyan">
+              <div className="arcade-panel-header">BRIQUE EN MAIN</div>
+              <div className="arcade-panel-content">
+                <ActiveBrick currentBrick={currentBrick} onDragEnd={() => setHoverPos(null)} />
+              </div>
             </div>
           )}
+          
         </div>
 
-        {/* panneau de l'adversaire pour le mode multijoueur */}
-        {socket && roomCode && (
-          <div className="reproduction-opponent">
-            <h3 className="reproduction-opponent-title">adversaire ⚔️</h3>
-            <div className="reproduction-opponent-score">
-              précision : {opponentScore}%
-            </div>
+        {/* ⬇️ COLONNE CENTRALE : Le terrain de jeu */}
+        <div className="repro-center-panel">
+          <div className="arcade-panel panel-cyan" style={{ width: '100%' }}>
+            <div className="arcade-panel-header">GRILLE DU JOUEUR ({rows}x{cols})</div>
+            <div className="arcade-panel-content">
+              
+              {!gameOver ? (
+                <Board 
+                  rows={rows} 
+                  cols={cols} 
+                  bricks={placedBricks} 
+                  onCellDrop={handleCellDrop} 
+                  onCellHover={handleCellHover}
+                  onMouseLeave={() => setHoverPos(null)}
+                  previewBricks={currentPreview}
+                  hoverPos={hoverPos}
+                  cellSize={45} 
+                />
+              ) : (
+                <div className="reproduction-gameover-panel" style={{ textAlign: 'center', width: '100%' }}>
+                    <GameOverReproduction 
+                    score={percentage} 
+                    mode={mode}
+                    result={result}
+                    difficulty={difficulty}
+                    onRestart={() => window.location.reload()} 
+                    onReturnHome={() => { window.location.href = '/'; }}
+                  />
+                  {roomCode && (
+                      <div className="multiplayer-result" style={{ marginTop: '20px' }}>
+                        <p style={{ fontFamily: 'var(--font-heading)', color: result === 'win' ? 'var(--neon-green)' : result === 'loss' ? 'var(--neon-magenta)' : 'var(--neon-yellow)' }}>
+                          {result === 'win' ? "🏆 VOUS AVEZ GAGNÉ ! 🏆" : (result === 'loss' ? "❌ VOUS AVEZ PERDU... ❌" : "🤝 C'EST UNE ÉGALITÉ ! 🤝")}
+                        </p>
+                      </div>
+                  )}
+                </div>
+              )}
 
-            <div className="reproduction-opponent-label">grille :</div>
-            <Board 
-              rows={rows}
-              cols={cols}
-              bricks={opponentBricks}
-              cellSize={15}
-              gridClassName="reproduction-opponent-grid-style"
-            />
+            </div>
           </div>
-        )}
+        </div>
+
+        {/* ➡️ COLONNE DE DROITE : Le temps et l'adversaire */}
+        <div className="repro-side-panel">
+          
+          {/* Le panneau du chrono */}
+          {!gameOver && (
+            <div className="arcade-panel panel-yellow">
+              <div className="arcade-panel-header">TEMPS RESTANT</div>
+              <div className="arcade-panel-content">
+                <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
+              </div>
+            </div>
+          )}
+
+          {/* Le panneau des contrôles (Valider / Abandonner) */}
+          {!gameOver && (
+            <div className="arcade-panel panel-magenta">
+              <div className="arcade-panel-header">CONTRÔLES</div>
+              <div className="arcade-panel-content" style={{ width: '100%', gap: '15px' }}>
+                <button className="btn-lego btn-green" onClick={handleTimeout} style={{ width: '100%' }}>
+                  PASSER LE TOUR
+                </button>
+                <button className="btn-lego btn-red" onClick={() => endGame(placedBricks)} style={{ width: '100%' }}>
+                  VALIDER & FINIR
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Panneau de l'adversaire (Multijoueur uniquement) */}
+          {socket && roomCode && (
+            <div className="arcade-panel panel-magenta">
+              <div className="arcade-panel-header">ADVERSAIRE ⚔️</div>
+              <div className="arcade-panel-content">
+                
+                <div style={{ color: 'var(--neon-cyan)', marginBottom: '15px', fontFamily: 'var(--font-heading)', fontSize: '0.8rem' }}>
+                  PRÉCISION : {opponentScore}%
+                </div>
+
+                <Board 
+                  rows={rows}
+                  cols={cols}
+                  bricks={opponentBricks}
+                  cellSize={15}
+                  gridClassName="reproduction-opponent-grid-style"
+                />
+              </div>
+            </div>
+          )}
+
+        </div>
 
       </div>
     </div>

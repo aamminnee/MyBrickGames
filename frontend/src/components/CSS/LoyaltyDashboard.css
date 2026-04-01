@@ -1,353 +1,527 @@
-/* base container styles */
+/* src/components/CSS/LoyaltyDashboard.css */
 .loyalty-container {
-  max-width: 900px;
-  margin: 40px auto;
-  padding: 0 20px;
+  position: relative;
+  /* On remplace 1200px par 95% de la largeur de la fenêtre (vw) */
+  width: 95vw; 
+  /* On enlève max-width ou on le met très grand (ex: 2500px) */
+  max-width: 2500px; 
+  margin: 0 auto;
+  padding: 40px 80px; /* Un peu plus de padding sur les côtés pour les flèches */
+  color: #fff;
+  overflow: hidden;
 }
 
+/* --- LA PISTE QUI GLISSE --- */
+.slider-track {
+  display: flex;
+  gap: 100px; 
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  width: 100%;
+  align-items: flex-start;
+}
+
+/* --- LES CARTES PRINCIPALES (LES SLIDES) --- */
 .loyalty-card {
-  background: var(--card-bg);
+  min-width: 100%; 
+  width: 100%;
+  flex-shrink: 0;
+  background: rgba(10, 10, 15, 0.95);
+  border: 3px solid var(--neon-blue);
+  border-radius: 10px;
   padding: 30px;
-  border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(0, 108, 183, 0.1);
-  border: 2px solid white;
-  margin-bottom: 30px;
+  box-shadow: 0 0 15px rgba(0, 85, 255, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.8);
+}
+
+/* --- LES BOUTONS DE NAVIGATION ARCADE --- */
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--neon-cyan);
+  border: 2px solid var(--neon-cyan);
+  font-family: var(--font-arcade);
+  font-size: 1.5rem;
+  padding: 15px;
+  cursor: pointer;
+  z-index: 10;
+  transition: all 0.2s;
+}
+
+.slider-btn:hover:not(:disabled) {
+  background: rgba(0, 229, 255, 0.2);
+  box-shadow: 0 0 15px var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan);
+}
+
+.slider-btn:disabled {
+  border-color: #333;
+  color: #333;
+  cursor: not-allowed;
+}
+
+.slider-btn.prev { left: 15px; }
+.slider-btn.next { right: 15px; }
+
+/* --- INDICATEURS DE PAGE (LES PETITS POINTS) --- */
+.slider-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: -10px;
+  padding-bottom: 20px;
+}
+
+.indicator {
+  width: 15px;
+  height: 15px;
+  background: #222;
+  border: 2px solid #444;
+  cursor: pointer;
+  transition: all 0.3s;
+  transform: rotate(45deg);
+}
+
+.indicator.active {
+  background: var(--neon-yellow);
+  border-color: var(--neon-yellow);
+  box-shadow: 0 0 10px var(--neon-yellow);
 }
 
 .loyalty-title {
-  color: var(--lego-blue);
+  color: var(--neon-red);
+  text-shadow: 0 0 10px var(--neon-red);
+  font-size: 1.2rem;
+  margin-bottom: 30px;
   text-align: center;
-  margin-bottom: 25px;
+  border-bottom: 2px dashed #333;
+  padding-bottom: 15px;
 }
 
+/* --- ZONE DE CONNEXION ET INPUTS --- */
 .loyalty-input-group {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 10px;
+  align-items: center; /* Centre le label et l'input */
   margin-bottom: 30px;
 }
 
-.loyalty-input-group input {
-  max-width: 300px;
-}
-
-.loyalty-stats {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
+.loyalty-input-group label {
+  font-size: 0.8rem;
+  color: var(--neon-cyan);
+  margin-bottom: 10px;
   text-align: center;
 }
 
+.loyalty-input-group input {
+  text-align: center; /* Centre le texte tapé à l'intérieur */
+  width: 100%;
+  max-width: 400px;
+}
+
+.loyalty-connection-group {
+  background: #000 !important;
+  border: 2px solid #222 !important;
+  box-shadow: inset 0 0 20px #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.loyalty-connection-group p {
+  color: #888 !important;
+  font-size: 0.7rem !important;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* --- STATS ET POINTS --- */
 .loyalty-stat-box {
-  background: #f8fafc;
-  padding: 20px 40px;
-  border-radius: 12px;
-  border: 2px solid #e2e8f0;
+  text-align: center;
+  margin-top: 20px;
+  border: 2px dashed var(--neon-yellow);
+  padding: 20px;
+  background: rgba(255, 232, 0, 0.05);
 }
 
 .loyalty-stat-box p {
-  margin: 0 0 10px 0;
-  color: var(--text-grey);
-  font-weight: 600;
+  font-size: 1rem;
+  color: #fff;
 }
 
 .loyalty-stat-value {
+  display: block;
   font-size: 3rem;
-  font-weight: bold;
-  color: var(--lego-red);
+  color: var(--neon-yellow);
+  text-shadow: 0 0 15px var(--neon-yellow);
+  margin-top: 15px;
 }
 
-/* filter bar styles */
+/* --- GRILLE DES STATISTIQUES --- */
+.stats-grid {
+  display: grid;
+  /* On force par exemple 3 colonnes fixes au lieu de repeat(auto-fit...) */
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 30px; /* Plus d'espace entre les cartes de stats */
+  margin-top: 20px;
+  max-width: 1400px; /* Optionnel : on limite la largeur de la grille elle-même au centre */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.stat-card {
+  background: #050505;
+  border: 2px solid #333;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.stat-card:hover {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+}
+
+.stat-card h4 {
+  font-size: 0.6rem;
+  color: var(--neon-cyan);
+  margin-bottom: 15px;
+  line-height: 1.4;
+}
+
+.stat-card .value {
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.stat-card .value.win { 
+  color: var(--neon-yellow); 
+  text-shadow: 0 0 10px var(--neon-yellow); 
+}
+
+/* --- HISTORIQUE --- */
+.loyalty-history-list {
+  list-style: none;
+  padding: 0;
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #333;
+}
+
+.loyalty-history-list::-webkit-scrollbar { width: 8px; }
+.loyalty-history-list::-webkit-scrollbar-track { background: #000; }
+.loyalty-history-list::-webkit-scrollbar-thumb { background: var(--neon-blue); }
+
+.loyalty-history-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px;
+  border-bottom: 1px solid #222;
+  background: #0a0a0a;
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.loyalty-history-item:hover {
+  background: rgba(0, 85, 255, 0.1);
+}
+
+.loyalty-history-item strong {
+  color: var(--neon-cyan);
+}
+
+/* --- BARRE DE PROGRESSION & SUCCÈS --- */
+.global-progress-container {
+  background: #000;
+  padding: 20px;
+  border: 2px solid #333;
+  margin-bottom: 30px;
+}
+
+.global-progress-title {
+  font-size: 0.8rem;
+  color: var(--neon-yellow);
+}
+
+.global-progress-stats {
+  float: right;
+  font-size: 0.7rem;
+  color: #888;
+}
+
+.achiev-progress-bar {
+  width: 100%;
+  height: 20px;
+  background: #111;
+  border: 2px solid #444;
+  margin-top: 15px;
+}
+
+.achiev-progress-fill {
+  height: 100%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 10px var(--neon-cyan);
+  transition: width 0.5s ease-out;
+}
+
+.global-fill {
+  background: var(--neon-red);
+  box-shadow: 0 0 10px var(--neon-red);
+}
+
+/* --- ONGLETS DES SUCCÈS --- */
+.achiev-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.achiev-tab {
+  background: #000;
+  color: #666;
+  border: 2px solid #333;
+  padding: 12px;
+  font-family: var(--font-arcade);
+  font-size: 0.6rem;
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+}
+
+.achiev-tab.active {
+  background: rgba(0, 85, 255, 0.2);
+  color: var(--neon-blue);
+  border-color: var(--neon-blue);
+  box-shadow: inset 0 0 10px rgba(0, 85, 255, 0.3);
+}
+
+.achiev-tab:hover:not(.active) { 
+  border-color: #888; 
+  color: #fff; 
+}
+
+/* --- GRILLE DES TROPHÉES --- */
+.achiev-grid {
+  display: grid;
+  /* On force exactement 2 colonnes de taille égale */
+  grid-template-columns: 1fr 1fr; 
+  gap: 20px;
+  /* On limite la hauteur pour activer le scroll interne */
+  max-height: 500px; 
+  overflow-y: auto;
+  padding-right: 10px; /* Espace pour la scrollbar */
+  margin-top: 20px;
+}
+
+/* Style de la scrollbar pour rester dans le thème Arcade */
+.achiev-grid::-webkit-scrollbar {
+  width: 8px;
+}
+
+.achiev-grid::-webkit-scrollbar-track {
+  background: #000;
+}
+
+.achiev-grid::-webkit-scrollbar-thumb {
+  background: var(--neon-yellow);
+  box-shadow: 0 0 10px var(--neon-yellow);
+}
+
+.achiev-card {
+  min-height: 120px;
+  display: flex;
+  background: #050505;
+  border: 2px solid #222;
+  padding: 15px;
+  gap: 15px;
+  opacity: 0.5;
+  filter: grayscale(100%);
+  transition: all 0.3s;
+}
+
+.achiev-card.completed {
+  opacity: 1;
+  filter: grayscale(0%);
+  border-color: var(--neon-yellow);
+  box-shadow: 0 0 15px rgba(255, 232, 0, 0.1);
+  background: rgba(255, 232, 0, 0.05);
+}
+
+.achiev-icon-wrapper {
+  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.achiev-title {
+  font-size: 0.6rem;
+  color: #fff;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.achiev-objective {
+  font-size: 0.6rem;
+  color: #888;
+  margin-bottom: 10px;
+  font-family: sans-serif; /* Plus lisible pour les longues descriptions */
+}
+
+.achiev-progress-text {
+  font-size: 0.5rem;
+  color: var(--neon-cyan);
+  display: block;
+  margin-top: 8px;
+  text-align: right;
+}
+
+/* --- FILTRES --- */
+.filters-bar select {
+  background: #000;
+  color: var(--neon-cyan);
+  border: 2px solid var(--neon-cyan);
+  padding: 10px;
+  font-size: 0.6rem;
+  margin-left: 10px;
+  cursor: pointer;
+}
+
 .filters-bar {
   display: flex;
-  gap: 20px;
   justify-content: center;
-  margin-bottom: 25px;
-  padding: 15px;
-  background: #f8fafc;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  align-items: center;
+  gap: 30px;
+  margin-bottom: 30px;
   flex-wrap: wrap;
 }
 
 .filter-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
 }
 
 .filter-group label {
-  font-weight: bold;
-  color: var(--text-grey);
+  font-size: 0.7rem;
+  color: var(--neon-cyan);
 }
 
 .filter-group select {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  font-family: var(--font-body);
-  outline: none;
+  background: #000;
+  color: var(--neon-cyan);
+  border: 1px dashed var(--neon-cyan);
+  padding: 10px 15px;
+  font-family: var(--font-arcade);
+  font-size: 0.6rem;
   cursor: pointer;
+  outline: none;
+  transition: all 0.3s;
 }
 
-/* stats grid styles */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 20px;
-  margin-top: 20px;
+.filter-group select:focus,
+.filter-group select:hover {
+  border-style: solid;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
 }
-
-.stat-card {
-  background: #f8fafc;
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.highlight-card {
-  border: 2px solid var(--lego-blue);
-  background: #f0f7ff;
-}
-
-.stat-card h4 {
-  margin: 0 0 10px 0;
-  color: var(--text-grey);
-  font-size: 0.9rem;
+/* --- LE MAXIMUM QU'ON PUISSE FAIRE SUR LES OPTIONS NATIVES --- */
+.filter-group select option {
+  background-color: #050505; /* Fond noir */
+  color: var(--neon-cyan);   /* Texte cyan */
+  font-family: var(--font-arcade); /* Ça marche sur Firefox, mais souvent ignoré sur Chrome/Safari */
+  font-size: 0.7rem;
   text-transform: uppercase;
 }
 
-.stat-card .value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: var(--lego-blue);
-  margin-bottom: 5px;
+.history-mode-tag {
+  margin-left: 10px;
+  font-size: 0.5rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: 1px solid;
 }
 
-.stat-card .value.win, .text-win {
-  color: #166534;
+.mode-solo {
+  color: var(--neon-yellow);
+  border-color: var(--neon-yellow);
+  background: rgba(255, 232, 0, 0.1);
 }
 
-.stat-card .value.loss, .text-loss {
-  color: #991b1b;
+.mode-multi {
+  color: var(--neon-red);
+  border-color: var(--neon-red);
+  background: rgba(255, 0, 60, 0.1);
 }
 
-.win-loss-text {
-  font-weight: bold;
+/* --- ARCADE SELECT CUSTOM --- */
+.arcade-select-container {
+  position: relative;
+  width: 220px; /* Largeur du bouton */
+  font-family: var(--font-arcade);
+  font-size: 0.6rem;
+  user-select: none;
 }
 
-.stat-card small {
-  color: var(--text-grey);
+.arcade-select-header {
+  background: #000;
+  color: var(--neon-cyan);
+  border: 1px dashed var(--neon-cyan);
+  padding: 10px 15px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s;
 }
 
-/* history list styles */
-.loyalty-history-list {
+.arcade-select-header:hover, .arcade-select-header.open {
+  border-style: solid;
+  box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+}
+
+.arcade-select-arrow {
+  font-size: 0.5rem;
+  transition: transform 0.3s;
+}
+
+.arcade-select-header.open .arcade-select-arrow {
+  transform: rotate(180deg);
+}
+
+.arcade-select-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #050505;
+  border: 1px solid var(--neon-cyan);
+  border-top: none;
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 400px;
+  z-index: 50; /* Pour passer par-dessus le reste */
+  max-height: 200px;
   overflow-y: auto;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
 }
 
-.loyalty-history-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 15px;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-.loyalty-history-item:last-child {
-  border-bottom: none;
-}
-
-/* --- achievements section styles (mybrickgames look) --- */
-
-.global-progress-container {
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 20px;
-  margin-bottom: 30px;
-}
-
-.global-progress-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.global-progress-title {
-  font-family: var(--font-heading);
-  font-size: 1.2rem;
-  color: var(--text-dark);
-}
-
-.global-progress-stats {
-  font-weight: bold;
-  color: var(--lego-blue);
-  font-size: 1.1rem;
-}
-
-.achiev-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-}
-
-.achiev-tab {
-  padding: 10px 20px;
-  border: 2px solid #e2e8f0;
-  background: #ffffff;
-  border-radius: 12px;
-  font-family: var(--font-heading);
-  font-size: 1rem;
+.arcade-select-item {
+  padding: 12px 15px;
+  color: #666;
   cursor: pointer;
-  color: var(--text-grey);
   transition: all 0.2s;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
 }
 
-.achiev-tab:hover {
-  border-color: var(--lego-blue);
-  color: var(--lego-blue);
-  transform: translateY(-2px);
+.arcade-select-item:hover {
+  background: rgba(0, 229, 255, 0.1);
+  color: #fff;
+  padding-left: 20px; /* Petit effet de glissement au survol */
 }
 
-.achiev-tab.active {
-  background: var(--lego-blue);
-  color: white;
-  border-color: var(--lego-blue-dark);
-  box-shadow: 0 4px 10px rgba(0, 108, 183, 0.2);
-}
-
-.achiev-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-}
-
-/* clean and modern card style */
-.achiev-card {
-  background: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-}
-
-.achiev-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 25px rgba(0, 108, 183, 0.1);
-  border-color: var(--lego-blue);
-}
-
-.achiev-card.completed {
-  background: #f0fdf4;
-  border-color: #bbf7d0;
-}
-
-.achiev-card.completed:hover {
-  border-color: #22c55e;
-  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.15);
-}
-
-/* left icon wrapper */
-.achiev-icon-wrapper {
-  width: 65px;
-  height: 65px;
-  background: #f1f5f9;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2.2rem;
-  flex-shrink: 0;
-  border: 1px solid #e2e8f0;
-}
-
-.achiev-card.completed .achiev-icon-wrapper {
-  background: #dcfce7;
-  border-color: #bbf7d0;
-}
-
-/* right info container */
-.achiev-info {
-  flex: 1;
-}
-
-.achiev-title {
-  margin: 0 0 4px 0;
-  font-family: var(--font-heading);
-  color: var(--text-dark);
-  font-size: 1.1rem;
-  text-transform: capitalize;
-}
-
-.achiev-objective {
-  margin: 0 0 12px 0;
-  font-size: 0.85rem;
-  color: var(--text-grey);
-}
-
-.achiev-card.completed .achiev-title {
-  color: #166534;
-}
-
-/* dynamic progress bar */
-.achiev-progress-container {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.achiev-progress-bar {
-  height: 12px;
-  background: #e2e8f0;
-  border-radius: 6px;
-  overflow: hidden;
-  width: 100%;
-}
-
-.achiev-card.completed .achiev-progress-bar {
-  background: #bbf7d0;
-}
-
-.achiev-progress-fill {
-  height: 100%;
-  background: var(--lego-blue);
-  border-radius: 6px;
-  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.global-fill {
-  background: var(--lego-red);
-}
-
-.achiev-card.completed .achiev-progress-fill {
-  background: #22c55e;
-}
-
-.achiev-progress-text {
-  font-size: 0.85rem;
-  color: var(--text-grey);
-  text-align: right;
-  font-weight: 600;
-}
-
-.achiev-card.completed .achiev-progress-text {
-  color: #15803d;
+.arcade-select-item.selected {
+  color: var(--neon-cyan);
+  background: rgba(0, 229, 255, 0.05);
+  border-left: 3px solid var(--neon-cyan);
 }

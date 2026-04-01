@@ -1,6 +1,8 @@
 import { Socket } from 'socket.io-client';
 import ChatBox from '../chat/ChatBox';
-import '../CSS/WaitingLobby.css'; // import css
+import ArcadeSelect from '../loyalty/ArcadeSelect';
+import '../CSS/WaitingLobby.css';
+import backgroundImage from '../../assets/background_8bit.jpg';
 
 interface WaitingLobbyProps {
   roomCode: string;
@@ -14,65 +16,104 @@ interface WaitingLobbyProps {
   socket: Socket;
 }
 
-const WaitingLobby = ({ roomCode, isHost, guestArrived, selectedGame, setSelectedGame, difficulty, setDifficulty, onStartGame, socket }: WaitingLobbyProps) => (
-  <div className="lobby-container">
-    <div className="game-card lobby-card">
-      <h2>salon d'attente</h2>
-      
-      <div className="lobby-code-box">
-        <span className="lobby-code-title">code à partager</span>
-        <div className="lobby-code-text">{roomCode}</div>
-      </div>
+const WaitingLobby = ({ 
+  roomCode, isHost, guestArrived, selectedGame, setSelectedGame, 
+  difficulty, setDifficulty, onStartGame, socket 
+}: WaitingLobbyProps) => {
 
-      <p style={{ fontSize: '1.1rem' }}>vous êtes : <strong style={{ color: isHost ? 'var(--lego-red)' : 'var(--lego-blue)' }}>{isHost ? 'joueur 1 (hôte)' : 'joueur 2 (invité)'}</strong></p>
-      
-      <div className={guestArrived || !isHost ? 'lobby-status-ready' : 'lobby-status-waiting'}>
-        {isHost && !guestArrived ? '⏳ en attente du joueur 2...' : '✅ les deux joueurs sont prêts !'}
-      </div>
+  // Récupération du pseudo réel enregistré dans LoyaltyDashboard
+  const myPseudo = localStorage.getItem('player_username') || (isHost ? 'HÔTE' : 'INVITÉ');
+  const opponentPseudo = guestArrived ? (isHost ? 'GUEST_01' : 'HOST_PLAYER') : '???';
 
-      {isHost ? (
-        <>
-          <h4 style={{ marginBottom: '10px', color: 'var(--text-grey)' }}>choix du jeu :</h4>
-          <select 
-            className="lego-input" 
-            value={selectedGame} 
-            onChange={(e) => setSelectedGame(e.target.value)} 
-            style={{ marginBottom: '15px', cursor: 'pointer' }}
-          >
-            <option value="reproduction">🖼️ jeu 1 : reproduction de mosaïque</option>
-            <option value="tetris">🧱 jeu 2 : casse-briques lego</option>
-          </select>
-
-          {/* host chooses difficulty for reproduction game */}
-          {selectedGame === 'reproduction' && (
-            <>
-              <h4 style={{ marginBottom: '10px', color: 'var(--text-grey)' }}>difficulté :</h4>
-              <select 
-                className="lego-input" 
-                value={difficulty} 
-                onChange={(e) => setDifficulty(e.target.value)} 
-                style={{ marginBottom: '25px', cursor: 'pointer' }}
-              >
-                <option value="easy">facile (8x8)</option>
-                <option value="normal">moyen (10x10)</option>
-                <option value="hard">difficile (12x12)</option>
-              </select>
-            </>
-          )}
+  return (
+    <div 
+      className="waiting-lobby-page" 
+      style={{ backgroundImage: `url(${backgroundImage})` }}
+    >
+      <div className="lobby-container">
+        {/* GAUCHE : CONFIGURATION */}
+        <div className="lobby-card">
+          <h2>— MODE VERSUS —</h2>
           
-          <button className="btn-lego btn-red" onClick={onStartGame} disabled={!guestArrived} style={{ marginTop: selectedGame === 'tetris' ? '10px' : '0' }}>
-            lancer la partie ! 🚀
-          </button>
-        </>
-      ) : (
-        <p className="lobby-guest-msg">l'hôte est en train de configurer la partie...</p>
-      )}
-    </div>
+          <div className="lobby-code-box">
+            <span className="lobby-code-title">CODE DU SALON</span>
+            <div className="lobby-code-text">{roomCode}</div>
+          </div>
 
-    <div>
-      <ChatBox socket={socket} roomCode={roomCode} userName={isHost ? 'joueur 1' : 'joueur 2'} />
+          <div className="lobby-vs-zone">
+            <div className={`player-box ${isHost ? 'active' : ''}`}>
+              <div style={{ color: 'var(--neon-red)', marginBottom: '10px' }}>P1</div>
+              {/* Affichage du pseudo utilisateur */}
+              <div style={{ fontSize: '0.7rem' }}>{isHost ? myPseudo : opponentPseudo}</div>
+              <div className="lobby-status-ready">PRÊT</div>
+            </div>
+
+            <div className="vs-divider">VS</div>
+
+            <div className={`player-box ${!isHost && guestArrived ? 'active' : ''}`}>
+              <div style={{ color: 'var(--neon-blue)', marginBottom: '10px' }}>P2</div>
+              <div style={{ fontSize: '0.7rem' }}>{!isHost ? myPseudo : opponentPseudo}</div>
+              <div className={guestArrived ? "lobby-status-ready" : "lobby-status-waiting"}>
+                {guestArrived ? "PRÊT" : "ATTENTE..."}
+              </div>
+            </div>
+          </div>
+
+          {isHost ? (
+            <div className="lobby-config-zone">
+              {/* LIGNE 1 : JEU */}
+              <div className="lobby-config-row">
+                <span className="lobby-config-label">SÉLECTION DU JEU :</span>
+                <ArcadeSelect 
+                  value={selectedGame} 
+                  onChange={setSelectedGame} 
+                  options={[
+                    { value: 'reproduction', label: 'REPRODUCTION' },
+                    { value: 'tetris', label: 'CASSE-BRIQUES' }
+                  ]} 
+                />
+              </div>
+
+              {/* LIGNE 2 : DIFFICULTÉ (seulement si Reproduction est choisi) */}
+              {selectedGame === 'reproduction' && (
+                <div className="lobby-config-row">
+                  <span className="lobby-config-label">CHOIX DU NIVEAU :</span>
+                  <ArcadeSelect 
+                    value={difficulty} 
+                    onChange={setDifficulty} 
+                    options={[
+                      { value: 'easy', label: 'FACILE (8x8)' },
+                      { value: 'normal', label: 'MOYEN (10x10)' },
+                      { value: 'hard', label: 'DIFFICILE (12x12)' }
+                    ]} 
+                  />
+                </div>
+              )}
+              
+              <button className="btn-start-game" onClick={onStartGame} disabled={!guestArrived}>
+                INSERT COIN & START
+              </button>
+            </div>
+          ) : (
+            <div className="lobby-config-zone">
+              <p style={{ color: 'var(--neon-cyan)', animation: 'blink-title 1.5s infinite' }}>
+                L'HÔTE PRÉPARE LE DUEL...
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* DROITE : TON CHATBOX.TSX PERSONNALISÉ */}
+        <div className="app-chat-wrapper">
+          <ChatBox 
+            socket={socket} 
+            roomCode={roomCode} 
+            userName={myPseudo} 
+          />
+        </div>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default WaitingLobby;

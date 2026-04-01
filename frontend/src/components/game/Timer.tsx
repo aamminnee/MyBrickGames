@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import '../CSS/Timer.css'; // import du css
+import '../CSS/Timer.css';
 
 interface TimerProps {
   timeLimit: number;
@@ -23,12 +23,22 @@ const Timer = ({ timeLimit, onTimeout, resetKey }: TimerProps) => {
     return () => clearInterval(timerId);
   }, [timeLeft, onTimeout]);
 
-  // definition de la classe selon le temps restant
   const timerClass = timeLeft <= 3 ? 'timer-warning' : 'timer-normal';
+  const progress = Math.max(0, (timeLeft / timeLimit) * 100);
 
   return (
     <div className={`timer-container ${timerClass}`}>
-      ⏳ temps restant : {timeLeft}s
+      <span className="timer-label">TEMPS</span>
+      <span className="timer-value">
+        {timeLeft}
+        <span className="timer-unit">s</span>
+      </span>
+      <div className="timer-bar-track">
+        <div
+          className="timer-bar-fill"
+          style={{ width: `${progress}%` } as React.CSSProperties}
+        />
+      </div>
     </div>
   );
 };

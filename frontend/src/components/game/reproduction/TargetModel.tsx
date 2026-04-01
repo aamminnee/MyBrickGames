@@ -1,8 +1,7 @@
 import Board from '../Board';
 import type { BrickObj } from '../Board';
-import '../../CSS/TargetModel.css'; 
+import '../../CSS/TargetModel.css';
 
-// interface pour les proprietes du modele cible
 interface TargetModelProps {
   targetBricks: BrickObj[];
   rows: number;
@@ -12,15 +11,18 @@ interface TargetModelProps {
 const TargetModel = ({ targetBricks, rows, cols }: TargetModelProps) => {
   return (
     <div className="reproduction-target-container">
-      <div>
-        <h4 className="reproduction-target-title">modèle à reproduire :</h4>
-        {/* on encapsule le plateau dans une div non interactive pour servir de simple image */}
-        <div style={{ pointerEvents: 'none', display: 'inline-block', border: '2px solid #ccc', borderRadius: '5px', overflow: 'hidden' }}>
-          <Board 
-            rows={rows} 
-            cols={cols} 
-            bricks={targetBricks} 
-            cellSize={20} // taille de cellule reduite pour le modele
+      <div className="reproduction-target-wrapper">
+        <div className="reproduction-target-header">
+          <span className="reproduction-target-pip" />
+          <h4 className="reproduction-target-title">modèle à reproduire</h4>
+          <span className="reproduction-target-pip" />
+        </div>
+        <div className="reproduction-target-board">
+          <Board
+            rows={rows}
+            cols={cols}
+            bricks={targetBricks}
+            cellSize={28}
           />
         </div>
       </div>
