@@ -1,17 +1,35 @@
-/* styles pour le composant targetmodel */
+/* ============================================
+   TARGET MODEL — ARCADE STYLE
+   ============================================ */
 .reproduction-target-container {
   display: flex;
   justify-content: center;
-  gap: 30px;
+  gap: 24px;
   margin-bottom: 20px;
 }
 
 .reproduction-target-title {
-  color: var(--text-grey);
+  font-family: var(--font-heading);
+  font-size: 0.65rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
 }
 
 .reproduction-target-img {
-  border-radius: 5px;
-  border: 2px solid #ccc;
+  border-radius: 6px;
+  border: 1px solid rgba(0,255,255,0.2);
   object-fit: cover;
+  box-shadow:
+    0 0 20px rgba(0,255,255,0.08),
+    0 6px 24px rgba(0,0,0,0.7);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.reproduction-target-img:hover {
+  border-color: rgba(0,255,255,0.45);
+  box-shadow:
+    0 0 25px rgba(0,255,255,0.15),
+    0 6px 24px rgba(0,0,0,0.7);
 }

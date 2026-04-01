@@ -1,19 +1,295 @@
-.home-container { max-width: 1000px; margin: 60px auto; text-align: center; padding: 0 20px; }
-.home-title { font-size: 3.5rem; color: var(--text-dark); margin-bottom: 10px; }
-.home-title-highlight { color: var(--lego-red); }
-.home-subtitle { font-size: 1.2rem; color: var(--text-grey); margin-bottom: 50px; }
-.home-cards-flex { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-.home-card-solo { width: 320px; display: flex; flex-direction: column; }
-.home-card-solo h2 { color: var(--lego-blue); }
-.home-card-solo p { color: var(--text-grey); flex: 1; }
-.home-select { margin-bottom: 15px; cursor: pointer; }
+/* --- LE CONTENEUR PRINCIPAL --- */
+.arcade-home-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  background-color: #000;
+}
 
-.home-card-vs { width: 380px; border-top: 6px solid var(--lego-red); }
-.home-card-vs h2 { color: var(--lego-red); }
-.home-card-vs p { color: var(--text-grey); margin-bottom: 25px; }
+/* --- LE FOND QUI GLITCH --- */
+/* On utilise ::before pour mettre l'image en arrière-plan. 
+   Ainsi, seul le fond tremble et pas le menu ! */
+.arcade-home-container::before {
+  content: "";
+  position: absolute;
+  /* On déborde un peu de l'écran (-20px) pour ne pas voir de bords noirs quand l'image tremble */
+  top: -20px; left: -20px; right: -20px; bottom: -20px; 
+  
+  background-image: url('https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=2071');
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+  
+  /* Animation du glitch (dure 5 secondes et tourne en boucle) */
+  animation: glitch-anim 5s infinite;
+}
 
-.home-divider { position: relative; text-align: center; margin-bottom: 25px; }
-.home-divider-text { background: white; padding: 0 10px; color: var(--text-grey); font-size: 0.9rem; position: relative; z-index: 1; }
-.home-divider-line { position: absolute; top: 50%; left: 0; right: 0; border: none; border-top: 1px solid #e2e8f0; margin: 0; z-index: 0; }
-.home-input-group { display: flex; gap: 10px; }
+/* L'animation CSS du glitch */
+@keyframes glitch-anim {
+  /* 92% du temps, l'image est normale et fixe */
+  0%, 92% { 
+    transform: translate(0, 0); 
+    filter: hue-rotate(0deg) contrast(1); 
+  }
+  /* Pendant une fraction de seconde, elle tremble et change de couleur (effet néon cassé) */
+  93% { transform: translate(-8px, 4px); filter: hue-rotate(90deg) contrast(1.5); }
+  95% { transform: translate(6px, -6px); filter: hue-rotate(-90deg) contrast(0.8); }
+  97% { transform: translate(-4px, 8px); filter: hue-rotate(180deg) contrast(1.2); }
+  99% { transform: translate(8px, -4px); filter: hue-rotate(45deg) contrast(2); }
+  100% { transform: translate(0, 0); filter: hue-rotate(0deg) contrast(1); }
+}
+
+/* --- LA GRILLE LASER 3D (AMÉLIORÉE) --- */
+.arcade-home-container::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: -50%;
+  width: 200%;
+  height: 50%; /* Elle monte un peu plus haut sur l'écran */
+  
+  /* Lignes au néon plus lumineuses et prononcées */
+  background-image: 
+    linear-gradient(rgba(255, 0, 127, 0.9) 2px, transparent 2px),
+    linear-gradient(90deg, rgba(255, 0, 127, 0.9) 2px, transparent 2px);
+  background-size: 50px 25px; /* Dimension des "tuiles" au sol */
+  
+  /* Effet 3D beaucoup plus fuyant et dramatique */
+  transform: perspective(300px) rotateX(75deg);
+  
+  animation: move-grid 1s linear infinite; /* Animation plus fluide */
+  z-index: 1;
+
+  /* LE SECRET MAGIQUE : Masque pour effacer la grille doucement vers l'horizon */
+  -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%);
+  mask-image: linear-gradient(to top, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%);
+}
+
+/* L'animation de défilement (boucle parfaite) */
+@keyframes move-grid {
+  0% { transform: perspective(300px) rotateX(75deg) translateY(0); }
+  /* La valeur de translateY (25px) DOIT être identique à la hauteur du background-size pour une boucle invisible */
+  100% { transform: perspective(300px) rotateX(75deg) translateY(25px); } 
+}
+
+/* --- L'ÉCRAN DE LA BORNE D'ARCADE --- */
+.arcade-monitor {
+  position: relative;
+  z-index: 2;
+  background: rgba(5, 5, 5, 0.95);
+  border: 10px solid #222;
+  border-radius: 20px;
+  padding: 40px 50px;
+  box-shadow: 
+    0 0 0 4px #111,
+    0 20px 50px rgba(0,0,0,0.8),
+    inset 0 0 30px rgba(255,255,255,0.1);
+  width: 100%;
+  max-width: 600px;
+  text-align: center;
+}
+
+/* Titre du jeu */
+.arcade-title {
+  color: #ffea00;
+  font-size: 2rem;
+  line-height: 1.5;
+  margin-bottom: 40px;
+  text-shadow: 4px 4px 0px #ff007f;
+}
+
+/* --- LE MENU VERTICAL --- */
+.arcade-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  align-items: center;
+}
+
+/* Style des sélecteurs et inputs */
+.arcade-input-field {
+  background: transparent;
+  border: 2px dashed #00ffff;
+  color: #00ffff;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  padding: 15px;
+  width: 100%;
+  max-width: 350px;
+  text-align: center;
+  outline: none;
+}
+.arcade-input-field:focus {
+  border-style: solid;
+  box-shadow: 0 0 15px #00ffff;
+}
+
+/* Boutons du menu (façon menu "Press Start") */
+.arcade-menu-btn {
+  background: transparent;
+  color: #fff;
+  border: none;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  position: relative;
+  padding: 10px 20px;
+  transition: all 0.2s;
+}
+
+/* La petite flèche " > " qui apparait au survol */
+.arcade-menu-btn::before {
+  content: "►";
+  position: absolute;
+  left: -20px;
+  color: #ff007f;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.arcade-menu-btn:hover::before {
+  opacity: 1;
+}
+.arcade-menu-btn:hover {
+  color: #ffea00;
+  transform: scale(1.1);
+}
+
+/* Section "Rejoindre" */
+.arcade-join-group {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 2px solid #333;
+}
+
+.arcade-logo {
+  max-width: 350px; /* Ajustez la taille selon votre logo */
+  width: 100%;
+  margin-bottom: 40px;
+  /* Optionnel : ajoute une ombre portée néon autour de votre logo */
+  filter: drop-shadow(0 0 15px rgba(255, 0, 127, 0.8));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+/* Mise à jour du moniteur */
+.arcade-monitor {
+  border: 4px solid var(--neon-blue);
+  box-shadow: 0 0 20px rgba(0, 85, 255, 0.4), inset 0 0 40px rgba(0, 0, 0, 1);
+}
+
+/* Sélecteur de jeu (Bleu/Cyan) */
+.arcade-input-field {
+  border: 2px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+}
+
+/* Bouton Solo (Jaune) */
+.arcade-menu-btn:nth-of-type(1) {
+  color: var(--neon-yellow);
+}
+.arcade-menu-btn:nth-of-type(1):hover {
+  text-shadow: 0 0 10px var(--neon-yellow);
+}
+
+/* Bouton VS Mode / Host (Rouge) */
+.arcade-menu-btn:nth-of-type(2) {
+  color: var(--neon-red);
+}
+.arcade-menu-btn:nth-of-type(2):hover {
+  text-shadow: 0 0 10px var(--neon-red);
+}
+
+/* Zone Rejoindre (Bordure discrète mais focus Cyan) */
+.arcade-join-group {
+  border-top: 2px dashed #444;
+}
+
+/* --- ARCADE SELECT CUSTOM (SPÉCIFIQUE ACCUEIL) --- */
+.arcade-select-container {
+  position: relative;
+  width: 100%;
+  max-width: 350px;
+  font-family: var(--font-arcade);
+  font-size: 0.8rem; /* Police plus grande, identique à l'input Join */
+  user-select: none;
+  margin: 0 auto; /* S'assure qu'il est bien centré */
+}
+
+.arcade-select-header {
+  background: transparent; /* Fond transparent pour matcher avec les autres boutons */
+  color: var(--neon-cyan);
+  border: 2px solid var(--neon-cyan); /* Bordure de 2px au lieu de 1px */
+  padding: 15px; /* Padding plus généreux pour faire un gros bouton */
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.3s;
+}
+
+.arcade-select-header:hover, .arcade-select-header.open {
+  box-shadow: 0 0 15px var(--neon-cyan); /* Glow plus intense au survol */
+}
+
+.arcade-select-arrow {
+  font-size: 0.6rem;
+  transition: transform 0.3s;
+}
+
+.arcade-select-header.open .arcade-select-arrow {
+  transform: rotate(180deg);
+}
+
+.arcade-select-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: rgba(5, 5, 5, 0.95);
+  border: 2px solid var(--neon-cyan);
+  border-top: none;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.9);
+}
+
+.arcade-select-item {
+  padding: 15px; /* Option plus grande pour le menu d'accueil */
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.arcade-select-item:hover {
+  background: rgba(0, 229, 255, 0.1);
+  color: #fff;
+  padding-left: 20px;
+}
+
+.arcade-select-item.selected {
+  color: var(--neon-cyan);
+  background: rgba(0, 229, 255, 0.05);
+  border-left: 3px solid var(--neon-cyan);
+}

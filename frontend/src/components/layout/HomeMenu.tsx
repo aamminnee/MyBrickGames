@@ -1,4 +1,6 @@
 import '../CSS/HomeMenu.css'; // import du css
+import monLogo from '../../assets/logo.png';
+import ArcadeSelect from '../loyalty/ArcadeSelect';
 
 interface HomeMenuProps {
   selectedGame: string;
@@ -11,61 +13,55 @@ interface HomeMenuProps {
 }
 
 const HomeMenu = ({ selectedGame, setSelectedGame, joinCode, setJoinCode, onPlaySolo, onCreateRoom, onJoinRoom }: HomeMenuProps) => (
-  <div className="home-container">
-    <h1 className="home-title">
-      MyBrick<span className="home-title-highlight">Games</span>
-    </h1>
-    <p className="home-subtitle">
-      entraînez-vous ou défiez vos amis pour gagner des points de fidélité !
-    </p>
-
-    <div className="home-cards-flex">
+  <div className="arcade-home-container">
+    
+    {/* L'écran central de la borne */}
+    <div className="arcade-monitor">
       
-      {/* mode solo */}
-      <div className="game-card home-card-solo">
-        <h2>mode solo 👤</h2>
-        <p>entraînez-vous à reproduire des mosaïques ou au tetris à votre rythme.</p>
-        <div style={{ marginTop: '20px' }}>
-          <select 
-            className="lego-input home-select" 
+      <img 
+        src={monLogo} 
+        alt="My Brick Games Logo" 
+        className="arcade-logo" 
+      />
+
+      <div className="arcade-menu-list">
+        
+        {/* 1. Choix du jeu */}
+        <div style={{ width: '100%', maxWidth: '350px' }}>
+          <ArcadeSelect 
             value={selectedGame} 
-            onChange={(e) => setSelectedGame(e.target.value)} 
-          >
-            <option value="reproduction">🖼️ jeu 1 : reproduction</option>
-            <option value="tetris">🧱 jeu 2 : tetris lego</option>
-          </select>
-          <button className="btn-lego btn-blue" onClick={onPlaySolo}>
-            jouer tout de suite
-          </button>
+            onChange={setSelectedGame} 
+            options={[
+              { value: 'reproduction', label: 'JEU : REPRODUCTION' },
+              { value: 'tetris', label: 'JEU : CASSE-BRIQUES' }
+            ]} 
+          />
         </div>
-      </div>
 
-      {/* mode competition */}
-      <div className="game-card home-card-vs">
-        <h2>mode compétition 🆚</h2>
-        <p>affrontez un ami sur le même niveau.</p>
-        
-        <button className="btn-lego btn-red" onClick={onCreateRoom} style={{ marginBottom: '25px' }}>
-          👑 créer un salon (hôte)
+        {/* 2. Jouer en solo */}
+        <button className="arcade-menu-btn" onClick={onPlaySolo}>
+          1 PLAYER START
         </button>
-        
-        <div className="home-divider">
-          <span className="home-divider-text">ou</span>
-          <hr className="home-divider-line" />
-        </div>
 
-        <div className="home-input-group">
+        {/* 3. Créer une partie multi */}
+        <button className="arcade-menu-btn" onClick={onCreateRoom}>
+          VS MODE (HOST)
+        </button>
+
+        {/* 4. Rejoindre une partie */}
+        <div className="arcade-join-group">
           <input 
-            className="lego-input"
-            placeholder="code (ex: abcd)" 
+            className="arcade-input-field"
+            placeholder="ENTER CODE (ABCD)" 
             value={joinCode} 
             onChange={(e) => setJoinCode(e.target.value.toUpperCase())} 
             maxLength={4}
           />
-          <button className="btn-lego btn-blue" onClick={onJoinRoom} style={{ width: 'auto' }}>
-            rejoindre
+          <button className="arcade-menu-btn" onClick={onJoinRoom} style={{ color: '#00ffff' }}>
+            JOIN GAME
           </button>
         </div>
+
       </div>
 
     </div>

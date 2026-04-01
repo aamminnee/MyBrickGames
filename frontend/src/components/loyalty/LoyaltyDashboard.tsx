@@ -1,9 +1,27 @@
 import { useState, useEffect, useMemo } from 'react';
+import ArcadeSelect from './ArcadeSelect';
 import '../CSS/LoyaltyDashboard.css';
+import backgroundImage from '../../assets/retro.avif';
 
 const LoyaltyDashboard = () => {
-  // etat pour l'id utilisateur et les donnees du backend
-  const [loyaltyId, setLoyaltyId] = useState(() => localStorage.getItem('loyalty_id') || 'joueur_test_123');
+  // 1. L'ID DE FIDÉLITÉ (loyaltyId) : Généré automatiquement, non modifiable, sert pour l'e-commerce
+  const [loyaltyId] = useState(() => {
+    let id = localStorage.getItem('loyalty_id');
+    if (!id) {
+      // Génère un ID aléatoire sécurisé de 16 caractères (ex: LY-4f8a2b9...)
+      id = 'LY-' + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
+      localStorage.setItem('loyalty_id', id);
+    }
+    return id;
+  });
+
+  // 2. LE NOM D'UTILISATEUR (username) : Ce que le joueur voit et peut modifier
+  const [username, setUsername] = useState(() => localStorage.getItem('player_username') || 'Nouveau Joueur');
+
+  // État pour afficher/cacher l'ID secret de fidélité
+  const [showSecretId, setShowSecretId] = useState<boolean>(false);
+
+  // etat pour les donnees du backend
   const [points, setPoints] = useState<number>(0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [history, setHistory] = useState<any[]>([]);
@@ -15,13 +33,19 @@ const LoyaltyDashboard = () => {
   // etat pour l'onglet de categorie des succes
   const [achievTab, setAchievTab] = useState<'tetris' | 'reproduction' | 'multi' | 'other'>('tetris');
 
-  // mettre a jour l'identifiant dans le cache local
-  const handleIdChange = (newId: string) => {
-    setLoyaltyId(newId);
-    localStorage.setItem('loyalty_id', newId);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Fonctions pour naviguer
+  const nextSlide = () => setCurrentSlide(prev => Math.min(prev + 1, 2));
+  const prevSlide = () => setCurrentSlide(prev => Math.max(prev - 1, 0));
+
+  // Mettre à jour le nom d'utilisateur dans le cache local
+  const handleUsernameChange = (newName: string) => {
+    setUsername(newName);
+    localStorage.setItem('player_username', newName);
   };
 
-  // recuperer les donnees au montage ou au changement d'id
+  // recuperer les donnees au montage
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -146,190 +170,286 @@ const LoyaltyDashboard = () => {
   const activeAchievements = achievementsList.filter(a => a.cat === achievTab);
 
   return (
-    <div className="loyalty-container">
-      <div className="loyalty-card">
-        <h2 className="loyalty-title">mon programme de fidélité</h2>
+    <div 
+      className="loyalty-page-wrapper"
+      style={{ 
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed'
+      }}
+    >
+      <div className="loyalty-container">
         
-        <div className="loyalty-input-group">
-          <label>identifiant de joueur :</label>
-          <input 
-            type="text" 
-            className="lego-input" 
-            value={loyaltyId} 
-            onChange={(e) => handleIdChange(e.target.value)}
-          />
-        </div>
+        {/* BOUTONS DE NAVIGATION ARCADE */}
+        <button 
+          className="slider-btn prev" 
+          onClick={prevSlide} 
+          disabled={currentSlide === 0}
+        >
+          ◄
+        </button>
+        <button 
+          className="slider-btn next" 
+          onClick={nextSlide} 
+          disabled={currentSlide === 2}
+        >
+          ►
+        </button>
 
-        <div className="loyalty-stats">
-          <div className="loyalty-stat-box">
-            <p>points disponibles</p>
-            <span className="loyalty-stat-value">{points}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="loyalty-card">
-        <h3 className="loyalty-title">mes statistiques & historique</h3>
-        
-        {/* barre de filtres */}
-        <div className="filters-bar">
-          <div className="filter-group">
-            <label>jeu :</label>
-            <select value={filterGame} onChange={(e) => setFilterGame(e.target.value)}>
-              <option value="all">tous les jeux</option>
-              <option value="reproduction">reproduction</option>
-              <option value="tetris">casse-briques (tetris)</option>
-            </select>
-          </div>
-          <div className="filter-group">
-            <label>mode :</label>
-            <select value={filterMode} onChange={(e) => setFilterMode(e.target.value)}>
-              <option value="all">tous les modes</option>
-              <option value="solo">solo</option>
-              <option value="multi">multijoueur</option>
-            </select>
-          </div>
-        </div>
-
-        {/* grille de statistiques dynamiques */}
-        <div className="stats-grid">
-          <div className="stat-card highlight-card">
-            <h4>ratio de victoire</h4>
-            <div className="value win">{stats.winRatio}%</div>
-            <small>sur {stats.wins + stats.losses} parties décisives</small>
-          </div>
-
-          <div className="stat-card">
-            <h4>parties jouées</h4>
-            <div className="value" style={{ color: 'var(--text-dark)' }}>{stats.total}</div>
-            <small className="win-loss-text">
-              <span className="text-win">{stats.wins} V</span> / <span className="text-loss">{stats.losses} D</span>
-              {stats.draws > 0 && ` / ${stats.draws} N`}
-            </small>
-          </div>
-
-          <div className="stat-card">
-            <h4>meilleur score (record)</h4>
-            <div className="value" style={{ color: 'var(--lego-red)' }}>{stats.bestScore}</div>
-            <small>sur la sélection actuelle</small>
-          </div>
-        </div>
-
-        <hr style={{ margin: '30px 0', borderColor: '#e2e8f0' }} />
-
-        {/* liste de l'historique filtre */}
-        <h4 style={{ color: 'var(--text-grey)', marginBottom: '15px' }}>
-          historique filtré ({stats.total} résultats)
-        </h4>
-        
-        {filteredHistory.length === 0 ? (
-          <p style={{ textAlign: 'center', color: 'var(--text-grey)' }}>aucune partie ne correspond à ces filtres.</p>
-        ) : (
-          <ul className="loyalty-history-list">
-            {filteredHistory.map((game, idx) => (
-              <li key={idx} className="loyalty-history-item">
-                <div>
-                  <strong>{game.gameId === 'tetris' ? 'casse-briques' : 'reproduction'}</strong>
-                  <span style={{ marginLeft: '10px', fontSize: '0.8rem', padding: '3px 8px', borderRadius: '10px', background: '#e2e8f0' }}>
-                    {game.mode}
-                  </span>
-                  <br/>
-                  <small style={{ color: 'var(--text-grey)' }}>{new Date(game.playedAt).toLocaleString()}</small>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  score : {game.score} 
-                  <span style={{ fontSize: '0.8rem', marginLeft: '5px' }}>
-                    ({game.result === 'win' ? 'victoire 🏆' : game.result === 'loss' ? 'défaite ❌' : 'égalité 🤝'})
-                  </span>
-                  <br/>
-                  <span style={{ color: 'var(--lego-red)', fontWeight: 'bold' }}>+{game.pointsEarned} pts gagnés</span>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* section des succes */}
-      <div className="loyalty-card">
-        <h3 className="loyalty-title">succès & trophées</h3>
-
-        {/* barre de progression globale */}
-        <div className="global-progress-container">
-          <div className="global-progress-info">
-            <span className="global-progress-title">progression globale des succès</span>
-            <span className="global-progress-stats">
-              {totalCompleted} / {totalAchievements} trophées ({Math.round(globalPercentage)}%)
-            </span>
-          </div>
-          <div className="achiev-progress-bar">
-            <div 
-              className="achiev-progress-fill global-fill" 
-              style={{ width: `${globalPercentage}%` }}
-            ></div>
-          </div>
-        </div>
-        
-        {/* onglets de categories */}
-        <div className="achiev-tabs">
-          <button 
-            className={`achiev-tab ${achievTab === 'tetris' ? 'active' : ''}`}
-            onClick={() => setAchievTab('tetris')}
-          >
-            🧱 casse-briques
-          </button>
-          <button 
-            className={`achiev-tab ${achievTab === 'reproduction' ? 'active' : ''}`}
-            onClick={() => setAchievTab('reproduction')}
-          >
-            🖼️ reproduction
-          </button>
-          <button 
-            className={`achiev-tab ${achievTab === 'multi' ? 'active' : ''}`}
-            onClick={() => setAchievTab('multi')}
-          >
-            ⚔️ multijoueur
-          </button>
-          <button 
-            className={`achiev-tab ${achievTab === 'other' ? 'active' : ''}`}
-            onClick={() => setAchievTab('other')}
-          >
-            🌟 autres
-          </button>
-        </div>
-
-        {/* grille de succes style mybrickgames */}
-        <div className="achiev-grid">
-          {activeAchievements.map(achiev => {
-            const percentage = (achiev.current / achiev.target) * 100;
-            const isCompleted = achiev.current >= achiev.target;
-
-            return (
-              <div key={achiev.id} className={`achiev-card ${isCompleted ? 'completed' : ''}`}>
-                <div className="achiev-icon-wrapper">
-                  {achiev.icon}
-                </div>
-                <div className="achiev-info">
-                  <h4 className="achiev-title">{achiev.title}</h4>
-                  <p className="achiev-objective">{achiev.objective}</p>
-                  
-                  <div className="achiev-progress-container">
-                    <div className="achiev-progress-bar">
-                      {/* remplissage dynamique visuel */}
-                      <div 
-                        className="achiev-progress-fill" 
-                        style={{ width: `${percentage}%` }}
-                      ></div>
-                    </div>
-                    {/* texte dynamique de progression */}
-                    <span className="achiev-progress-text">
-                      {Math.round(achiev.current)} / {achiev.target} ({Math.round(percentage)}%)
-                    </span>
+        {/* LA PISTE QUI GLISSE */}
+        <div 
+          className="slider-track" 
+          style={{ transform: `translateX(calc(-${currentSlide * 100}% - ${currentSlide * 100}px))` }}
+        >
+          
+          {/* SLIDE 1 : MON PROGRAMME DE FIDÉLITÉ */}
+          <div className="loyalty-card">
+            <h2 className="loyalty-title">mon programme de fidélité</h2>
+            
+            <div className="loyalty-input-group">
+              <label>Nom du joueur :</label>
+              <input 
+                type="text" 
+                className="arcade-input-field" 
+                value={username} 
+                onChange={(e) => handleUsernameChange(e.target.value)}
+                placeholder="ENTREZ VOTRE PSEUDO"
+              />
+            </div>
+            
+            <div className="loyalty-connection-group" style={{ marginBottom: '20px', padding: '15px', borderRadius: '8px' }}>
+              <p style={{ marginBottom: '15px', fontSize: '0.9rem' }}>
+                Pour utiliser vos points sur la boutique en ligne, copiez votre ID de fidélité unique. Ce code est privé, ne le partagez pas.
+              </p>
+              
+              {!showSecretId ? (
+                <button 
+                  onClick={() => setShowSecretId(true)} 
+                  className="arcade-menu-btn"
+                  style={{ color: 'var(--neon-blue)' }}
+                >
+                  AFFICHER MON ID
+                </button>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap', justifyContent: 'center' }}>
+                  <div style={{ fontSize: '1rem', color: 'var(--neon-cyan)', border: '1px dashed var(--neon-cyan)', padding: '15px', letterSpacing: '2px' }}>
+                    {loyaltyId}
                   </div>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(loyaltyId);
+                      alert("ID copié dans le presse-papier !");
+                    }}
+                    className="arcade-menu-btn"
+                    style={{ color: 'var(--neon-yellow)', fontSize: '0.7rem' }}
+                  >
+                    COPIER
+                  </button>
+                  <button 
+                    onClick={() => setShowSecretId(false)}
+                    className="arcade-menu-btn"
+                    style={{ color: 'var(--neon-red)', fontSize: '0.7rem' }}
+                  >
+                    CACHER
+                  </button>
                 </div>
+              )}
+            </div>
+
+            <div className="loyalty-stats">
+              <div className="loyalty-stat-box">
+                <p>points disponibles</p>
+                <span className="loyalty-stat-value">{points}</span>
               </div>
-            );
-          })}
+            </div>
+          </div>
+
+          {/* SLIDE 2 : MES STATISTIQUES & HISTORIQUE */}
+          <div className="loyalty-card">
+            <h3 className="loyalty-title">mes statistiques & historique</h3>
+            
+            <div className="filters-bar">
+              <div className="filter-group">
+                <label>JEU :</label>
+                <ArcadeSelect 
+                  value={filterGame} 
+                  onChange={setFilterGame} 
+                  options={[
+                    { value: 'all', label: 'TOUS LES JEUX' },
+                    { value: 'reproduction', label: 'REPRODUCTION' },
+                    { value: 'tetris', label: 'CASSE-BRIQUES' }
+                  ]} 
+                />
+              </div>
+              <div className="filter-group">
+                <label>MODE :</label>
+                <ArcadeSelect 
+                  value={filterMode} 
+                  onChange={setFilterMode} 
+                  options={[
+                    { value: 'all', label: 'TOUS LES MODES' },
+                    { value: 'solo', label: 'SOLO' },
+                    { value: 'multi', label: 'MULTIJOUEUR' }
+                  ]} 
+                />
+              </div>
+            </div>
+
+            <div className="stats-grid">
+              <div className="stat-card highlight-card">
+                <h4>ratio de victoire</h4>
+                <div className="value win">{stats.winRatio}%</div>
+                <small>sur {stats.wins + stats.losses} parties décisives</small>
+              </div>
+
+              <div className="stat-card">
+                <h4>parties jouées</h4>
+                <div className="value" style={{ color: 'var(--text-dark)' }}>{stats.total}</div>
+                <small className="win-loss-text">
+                  <span className="text-win">{stats.wins} V</span> / <span className="text-loss">{stats.losses} D</span>
+                  {stats.draws > 0 && ` / ${stats.draws} N`}
+                </small>
+              </div>
+
+              <div className="stat-card">
+                <h4>meilleur score (record)</h4>
+                <div className="value" style={{ color: 'var(--lego-red)' }}>{stats.bestScore}</div>
+                <small>sur la sélection actuelle</small>
+              </div>
+            </div>
+
+            <hr style={{ margin: '30px 0', borderColor: '#e2e8f0' }} />
+
+            <h4 style={{ color: 'var(--text-grey)', marginBottom: '15px' }}>
+              historique filtré ({stats.total} résultats)
+            </h4>
+            
+            {filteredHistory.length === 0 ? (
+              <p style={{ textAlign: 'center', color: 'var(--text-grey)' }}>aucune partie ne correspond à ces filtres.</p>
+            ) : (
+              <ul className="loyalty-history-list">
+                {filteredHistory.map((game, idx) => (
+                  <li key={idx} className="loyalty-history-item">
+                    <div>
+                      <strong>{game.gameId === 'tetris' ? 'CASSE-BRIQUES' : 'REPRODUCTION'}</strong>
+                      <span className={`history-mode-tag mode-${game.mode}`}>
+                        {game.mode}
+                      </span>
+                      <br/>
+                      <small style={{ color: '#666', marginTop: '5px', display: 'inline-block' }}>
+                        {new Date(game.playedAt).toLocaleString()}
+                      </small>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      score : {game.score} 
+                      <span style={{ fontSize: '0.8rem', marginLeft: '5px' }}>
+                        ({game.result === 'win' ? 'victoire 🏆' : game.result === 'loss' ? 'défaite ❌' : 'égalité 🤝'})
+                      </span>
+                      <br/>
+                      <span style={{ color: 'var(--lego-red)', fontWeight: 'bold' }}>+{game.pointsEarned} pts gagnés</span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {/* SLIDE 3 : SUCCÈS & TROPHÉES */}
+          <div className="loyalty-card">
+            <h3 className="loyalty-title">succès & trophées</h3>
+
+            <div className="global-progress-container">
+              <div className="global-progress-info">
+                <span className="global-progress-title">progression globale des succès</span>
+                <span className="global-progress-stats">
+                  {totalCompleted} / {totalAchievements} trophées ({Math.round(globalPercentage)}%)
+                </span>
+              </div>
+              <div className="achiev-progress-bar">
+                <div 
+                  className="achiev-progress-fill global-fill" 
+                  style={{ width: `${globalPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+            
+            <div className="achiev-tabs">
+              <button 
+                className={`achiev-tab ${achievTab === 'tetris' ? 'active' : ''}`}
+                onClick={() => setAchievTab('tetris')}
+              >
+                🧱 casse-briques
+              </button>
+              <button 
+                className={`achiev-tab ${achievTab === 'reproduction' ? 'active' : ''}`}
+                onClick={() => setAchievTab('reproduction')}
+              >
+                🖼️ reproduction
+              </button>
+              <button 
+                className={`achiev-tab ${achievTab === 'multi' ? 'active' : ''}`}
+                onClick={() => setAchievTab('multi')}
+              >
+                ⚔️ multijoueur
+              </button>
+              <button 
+                className={`achiev-tab ${achievTab === 'other' ? 'active' : ''}`}
+                onClick={() => setAchievTab('other')}
+              >
+                🌟 autres
+              </button>
+            </div>
+
+            <div className="achiev-grid">
+              {activeAchievements.map(achiev => {
+                const percentage = (achiev.current / achiev.target) * 100;
+                const isCompleted = achiev.current >= achiev.target;
+
+                return (
+                  <div key={achiev.id} className={`achiev-card ${isCompleted ? 'completed' : ''}`}>
+                    <div className="achiev-icon-wrapper">
+                      {achiev.icon}
+                    </div>
+                    <div className="achiev-info">
+                      <h4 className="achiev-title">{achiev.title}</h4>
+                      <p className="achiev-objective">{achiev.objective}</p>
+                      
+                      <div className="achiev-progress-container">
+                        <div className="achiev-progress-bar">
+                          <div 
+                            className="achiev-progress-fill" 
+                            style={{ width: `${percentage}%` }}
+                          ></div>
+                        </div>
+                        <span className="achiev-progress-text">
+                          {Math.round(achiev.current)} / {achiev.target} ({Math.round(percentage)}%)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+        </div>
+
+        {/* INDICATEURS DE POSITION (Losanges Cyberpunk) */}
+        <div className="slider-indicators">
+          <div 
+            className={`indicator ${currentSlide === 0 ? 'active' : ''}`} 
+            onClick={() => setCurrentSlide(0)}
+          ></div>
+          <div 
+            className={`indicator ${currentSlide === 1 ? 'active' : ''}`} 
+            onClick={() => setCurrentSlide(1)}
+          ></div>
+          <div 
+            className={`indicator ${currentSlide === 2 ? 'active' : ''}`} 
+            onClick={() => setCurrentSlide(2)}
+          ></div>
         </div>
 
       </div>

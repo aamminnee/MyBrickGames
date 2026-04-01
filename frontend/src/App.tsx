@@ -66,7 +66,11 @@ const MultiplayerHub = () => {
   // initialize a solo session locally
   const handlePlaySolo = () => {
     setIsHost(true);
-    setGameData({ gameId: selectedGame, difficulty }); 
+    
+    // Supprimez l'objet { gameId: ..., difficulty: ... }
+    // Forcez gameData à null pour que le sélecteur apparaisse
+    setGameData(null); 
+    
     setScreen('playing'); 
   };
 
@@ -118,17 +122,30 @@ const MultiplayerHub = () => {
       {screen === 'playing' && (
         <div className="app-playing-area">
           <div className="game-card app-game-card-wrapper">
-            {gameData?.gameId === 'tetris' ? (
+            {/* On utilise gameData (multi) ou selectedGame (solo) pour choisir le jeu */}
+            {(gameData?.gameId || selectedGame) === 'tetris' ? (
               <TetrisGame initialLevelData={gameData?.levelData} socket={socket} roomCode={roomCode} />
             ) : (
-              <ReproductionGame roomCode={roomCode} socket={socket} initialDifficulty={isHost ? difficulty : gameData?.difficulty} isHost={isHost} />
+              <ReproductionGame 
+                roomCode={roomCode} 
+                socket={socket} 
+                /* CORRECTION : 
+                   - Si roomCode existe (Multi) : l'hôte prend son état local, le guest prend celui du serveur
+                   - Si pas de roomCode (Solo) : on passe undefined pour afficher le sélecteur
+                */
+                initialDifficulty={roomCode ? (isHost ? difficulty : gameData?.difficulty) : undefined} 
+                isHost={isHost} 
+              />
             )}
           </div>
           
           {!isHost || guestArrived ? (
-            <div className="app-chat-wrapper">
-              <ChatBox socket={socket} roomCode={roomCode} userName={isHost ? 'joueur 1' : 'joueur 2'} />
-            </div>
+            <ChatBox 
+              socket={socket} 
+              roomCode={roomCode} 
+              userName={isHost ? 'joueur 1' : 'joueur 2'} 
+              variant="floating" 
+            />
           ) : null}
         </div>
       )}

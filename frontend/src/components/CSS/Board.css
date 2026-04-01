@@ -1,51 +1,73 @@
-/* styles pour le plateau de jeu principal */
+/* ============================================
+   BOARD — DARK GRID WITH LEGO BRICK EFFECT
+   ============================================ */
 .board-container {
   display: inline-grid;
-  background: #ffffff;
-  border: 2px solid #333;
+  background: #030308;
+  border: 1px solid #111120;
   margin: 0 auto;
   position: relative;
   width: max-content;
   box-sizing: content-box;
-  /* dynamic variables for layout */
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.03),
+    0 0 40px rgba(0,0,0,0.9) inset,
+    0 12px 40px rgba(0,0,0,0.8);
+  /* Dynamic variables */
   grid-template-columns: repeat(var(--grid-cols, 1), var(--cell-size, 25px));
-  grid-template-rows: repeat(var(--grid-rows, 1), var(--cell-size, 25px));
+  grid-template-rows:    repeat(var(--grid-rows, 1), var(--cell-size, 25px));
 }
 
+/* Empty cell */
 .board-cell-bg {
-  border: 1px solid rgba(0,0,0,0.05);
+  border: 1px solid #0d0d18;
   grid-column: var(--cell-col);
-  grid-row: var(--cell-row);
+  grid-row:    var(--cell-row);
+  background:  #070710;
 }
 
+/* Placed brick */
 .board-brick-placed {
-  box-sizing: border-box;
-  pointer-events: none;
-  z-index: 10;
-  grid-column: var(--cell-col);
-  grid-row: var(--cell-row);
+  box-sizing:      border-box;
+  pointer-events:  none;
+  z-index:         10;
+  grid-column:     var(--cell-col);
+  grid-row:        var(--cell-row);
   background-color: var(--brick-color);
   background-image: var(--tenon-svg);
-  background-size: var(--cell-size) var(--cell-size);
-  border-top: var(--border-t);
+  background-size:  var(--cell-size) var(--cell-size);
+  border-top:    var(--border-t);
   border-bottom: var(--border-b);
-  border-left: var(--border-l);
-  border-right: var(--border-r);
-  box-shadow: var(--box-shadow);
+  border-left:   var(--border-l);
+  border-right:  var(--border-r);
+  box-shadow:    var(--box-shadow),
+                 inset 0 1px 0 rgba(255,255,255,0.25),
+                 inset 0 -1px 0 rgba(0,0,0,0.35);
+  filter: brightness(1.15) saturate(1.1);
+  transition: filter 0.15s;
 }
 
+/* Ghost/preview brick */
 .board-brick-preview {
-  box-sizing: border-box;
-  pointer-events: none;
-  z-index: 20;
-  opacity: 0.5;
-  grid-column: var(--cell-col);
-  grid-row: var(--cell-row);
+  box-sizing:      border-box;
+  pointer-events:  none;
+  z-index:         20;
+  opacity:         0.35;
+  grid-column:     var(--cell-col);
+  grid-row:        var(--cell-row);
   background-color: var(--brick-color);
   background-image: var(--tenon-svg);
-  background-size: var(--cell-size) var(--cell-size);
-  border-top: var(--border-t);
+  background-size:  var(--cell-size) var(--cell-size);
+  border-top:    var(--border-t);
   border-bottom: var(--border-b);
-  border-left: var(--border-l);
-  border-right: var(--border-r);
+  border-left:   var(--border-l);
+  border-right:  var(--border-r);
+  filter: brightness(1.4);
+  animation: previewPulse 2s ease-in-out infinite;
+}
+
+@keyframes previewPulse {
+  0%, 100% { opacity: 0.35; }
+  50%       { opacity: 0.5;  }
 }

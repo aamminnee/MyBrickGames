@@ -1,27 +1,48 @@
-/* styles pour le composant activebrick */
+/* ============================================
+   ACTIVE BRICK — ARCADE STYLE
+   ============================================ */
 .reproduction-active-brick {
-  margin: 15px 0;
-  padding: 15px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  margin: 12px 0;
+  padding: 14px 18px;
+  background: rgba(5, 5, 15, 0.97);
+  border: 1px solid rgba(255, 234, 0, 0.2);
   display: inline-block;
-  border-radius: 12px;
+  border-radius: 10px;
+  box-shadow:
+    0 0 15px rgba(255,234,0,0.05),
+    0 4px 20px rgba(0,0,0,0.6);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.reproduction-active-brick:hover {
+  border-color: rgba(255, 234, 0, 0.4);
+  box-shadow:
+    0 0 20px rgba(255,234,0,0.12),
+    0 4px 20px rgba(0,0,0,0.6);
 }
 
 .reproduction-active-title {
   margin: 0 0 10px 0;
-  color: var(--text-grey);
+  font-family: var(--font-heading);
+  font-size: 0.62rem;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--neon-yellow);
+  text-shadow: 0 0 6px rgba(255,234,0,0.3);
 }
 
 .reproduction-active-box {
-  padding: 10px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  width: 110px;
-  height: 110px;
+  padding: 15px;
+  background-color: #1a1a2a; /* Assorti au fond de la grille */
+  border: 1px solid #2d2d44; /* Bordure plus claire */
+  border-radius: 6px;
+  min-width: 150px;
+  min-height: 150px;
+  width: fit-content;
+  height: fit-content;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
 }

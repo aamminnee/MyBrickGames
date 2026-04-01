@@ -1,8 +1,244 @@
-.lobby-container { display: flex; justify-content: center; gap: 40px; padding: 60px 20px; flex-wrap: wrap; }
-.lobby-card { width: 450px; }
-.lobby-code-box { background: #f8fafc; border: 3px dashed #cbd5e1; border-radius: 16px; padding: 20px; text-align: center; margin: 20px 0; }
-.lobby-code-title { color: var(--text-grey); font-size: 0.9rem; font-weight: bold; text-transform: uppercase; }
-.lobby-code-text { font-size: 3rem; letter-spacing: 8px; font-weight: bold; color: var(--lego-blue); font-family: var(--font-heading); }
-.lobby-status-ready { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; padding: 15px; border-radius: 10px; margin-bottom: 25px; font-weight: 600; }
-.lobby-status-waiting { background: #fffbeb; border: 1px solid #fef08a; color: #854d0e; padding: 15px; border-radius: 10px; margin-bottom: 25px; font-weight: 600; }
-.lobby-guest-msg { text-align: center; padding: 20px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; margin: 0; font-style: italic; color: var(--text-grey); }
+/* --- src/components/CSS/WaitingLobby.css --- */
+
+.waiting-lobby-page {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  position: relative;
+}
+
+/* On crée le voile sombre en pseudo-élément pour ne pas gêner le layout */
+.waiting-lobby-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Ajuste l'opacité (0.5) pour assombrir plus ou moins */
+  background-color: rgba(0, 0, 0, 0.5); 
+  z-index: 0; /* Place le voile derrière le contenu */
+}
+
+/* --- AJUSTEMENT DU CONTENU POUR LE PLACER DEVANT L'OVERLAY --- */
+.waiting-header, .lobby-container {
+  position: relative;
+  z-index: 1; /* Force le contenu à passer devant le voile sombre */
+}
+
+/* CONTENEUR PRINCIPAL : Mise en page Flexbox horizontale */
+.lobby-container {
+  display: flex;
+  flex-direction: row; /* Aligne les éléments horizontalement */
+  align-items: flex-start; /* Aligne le haut des éléments */
+  justify-content: center;
+  min-height: calc(100vh - 100px);
+  padding: 40px;
+  gap: 40px; /* Espace entre la carte et le chat */
+  width: 98vw;
+  max-width: 1800px; /* Largeur max pour éviter l'étirement excessif */
+  margin: 0 auto; /* Centrage horizontal */
+  height: calc(100vh - 120px);
+  margin-top: 20px;
+}
+
+/* LA CARTE DU SALON (À GAUCHE) */
+.lobby-card {
+  flex: 2; /* Prend plus d'espace que le chat */
+  background: rgba(5, 5, 5, 0.95);
+  border: 4px solid var(--neon-blue);
+  box-shadow: 0 0 20px rgba(0, 85, 255, 0.4), inset 0 0 40px rgba(0, 0, 0, 1);
+  width: 100%;
+  padding: 40px;
+  text-align: center;
+  position: relative;
+  
+  /* On force la hauteur pour l'aligner sur le chat */
+  height: 800px; 
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.chat-wrapper {           /* ou la classe que tu utilises */
+  flex: 1;
+  height: calc(100vh - 160px);  /* hauteur fixe, pas min-height */
+  max-height: 800px;
+  overflow: hidden;             /* empêche le débordement */
+}
+
+.app-chat-wrapper {
+  flex: 1; /* Prend une part généreuse de l'écran */
+  height: 50%;
+  min-width: 400px;
+}
+
+/* Titre clignotant */
+.lobby-card h2 {
+  color: var(--neon-yellow);
+  text-shadow: 3px 3px 0px var(--neon-red);
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+  animation: blink-title 1.5s infinite;
+  flex-shrink: 0; /* Ne s'écrase pas */
+}
+
+@keyframes blink-title {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+/* Affichage du code */
+.lobby-code-box {
+  background: #000;
+  border: 2px dashed var(--neon-cyan);
+  padding: 20px;
+  margin: 0 auto 30px auto;
+  width: fit-content;
+  flex-shrink: 0;
+}
+
+.lobby-code-title {
+  color: #666;
+  font-size: 0.6rem;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.lobby-code-text {
+  font-size: 3rem;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan);
+  letter-spacing: 15px;
+  font-weight: bold;
+}
+
+/* Zone Versus (Joueurs) */
+.lobby-vs-zone {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin-bottom: 40px;
+  gap: 20px;
+  flex-shrink: 0;
+}
+
+.player-box {
+  flex: 1;
+  padding: 20px;
+  border: 2px solid #333;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.player-box.active {
+  border-color: var(--neon-red);
+  box-shadow: 0 0 15px rgba(255, 0, 60, 0.3);
+}
+
+.vs-divider {
+  font-size: 2rem;
+  color: var(--neon-yellow);
+  font-style: italic;
+  text-shadow: 0 0 10px var(--neon-yellow);
+}
+
+/* Statuts */
+.lobby-status-ready {
+  color: #00ff00;
+  font-size: 0.7rem;
+  margin-top: 10px;
+}
+
+.lobby-status-waiting {
+  color: var(--neon-red);
+  font-size: 0.7rem;
+  margin-top: 10px;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Formulaire de configuration (Scrollable si trop long) */
+.lobby-config-zone {
+  border-top: 2px solid #222;
+  padding-top: 30px;
+  display: flex;
+  flex-direction: column; /* Les lignes restent les unes sous les autres */
+  align-items: center;
+  gap: 20px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.lobby-config-row {
+  display: flex;
+  flex-direction: row; /* Aligne label et sélecteur sur une ligne */
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 600px; /* Largeur augmentée pour tenir sur une ligne */
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.lobby-config-label {
+  color: var(--neon-cyan);
+  font-size: 0.8rem;
+  text-align: left;
+  flex: 1; /* Le label prend l'espace à gauche */
+  margin-bottom: 0; /* Enlève la marge du bas pour l'alignement */
+}
+
+.lobby-config-row .arcade-select-container {
+  flex: 1.5; /* Le sélecteur prend un peu plus de place à droite */
+  max-width: 350px;
+}
+
+/* Style de la scrollbar interne */
+.lobby-config-zone::-webkit-scrollbar { width: 6px; }
+.lobby-config-zone::-webkit-scrollbar-thumb { background: var(--neon-blue); }
+
+.lobby-config-label {
+  color: var(--neon-cyan);
+  font-size: 0.7rem;
+  margin-bottom: 5px;
+  display: block;
+}
+
+/* Bouton Start */
+.btn-start-game {
+  background: var(--neon-red);
+  color: white;
+  border: none;
+  padding: 20px 40px;
+  font-family: var(--font-arcade);
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 4px 4px 0px #800020;
+  transition: all 0.2s;
+  flex-shrink: 0; /* Ne s'écrase pas */
+  margin-top: auto; /* Pousse le bouton vers le bas */
+}
+
+.btn-start-game:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px #800020;
+  filter: brightness(1.2);
+}
+
+.btn-start-game:disabled {
+  background: #333;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
