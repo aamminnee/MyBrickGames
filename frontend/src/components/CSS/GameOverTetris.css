@@ -1,20 +1,246 @@
-/* styles pour le composant gameovertetris */
+/* ═══════════════════════════════════════════════════
+   GAME OVER TETRIS — ARCADE NEON THEME
+   ═══════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap');
+
+/* ── Conteneur principal ── */
 .tetris-gameover {
-  background: #f0fdf4;
-  border: 2px solid #bbf7d0;
-  padding: 30px;
-  border-radius: 15px;
-  margin: 20px 0;
+  position: relative;
+  background: linear-gradient(160deg, #0a0a1a 0%, #0d0d22 50%, #0a0a1a 100%);
+  border: 2px solid transparent;
+  border-radius: 4px;
+  padding: 40px 36px;
+  margin: 12px 0;
+  overflow: hidden;
+
+  /* Bordure néon cyan animée */
+  box-shadow:
+    0 0 0 2px #00f5ff,
+    0 0 20px rgba(0, 245, 255, 0.35),
+    0 0 60px rgba(0, 245, 255, 0.12),
+    inset 0 0 40px rgba(0, 0, 20, 0.8);
+
+  animation: border-pulse 3s ease-in-out infinite;
 }
 
+@keyframes border-pulse {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px #00f5ff,
+      0 0 20px rgba(0, 245, 255, 0.35),
+      0 0 60px rgba(0, 245, 255, 0.12),
+      inset 0 0 40px rgba(0, 0, 20, 0.8);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px #00f5ff,
+      0 0 30px rgba(0, 245, 255, 0.6),
+      0 0 90px rgba(0, 245, 255, 0.2),
+      inset 0 0 40px rgba(0, 0, 20, 0.8);
+  }
+}
+
+/* Lignes de scan CRT */
+.tetris-gameover::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 245, 255, 0.025) 2px,
+    rgba(0, 245, 255, 0.025) 4px
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Coin décoratif — style terminal arcade */
+.tetris-gameover::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border-top: 2px solid #ff00aa;
+  border-right: 2px solid #ff00aa;
+  box-shadow: 3px -3px 8px rgba(255, 0, 170, 0.5);
+}
+
+.tetris-gameover > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Titre GAME OVER ── */
 .tetris-gameover-title {
-  color: #166534;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.3rem;
+  letter-spacing: 0.04em;
+  color: #ff00aa;
+  text-transform: uppercase;
+  margin: 0 0 24px 0;
+  text-align: center;
+  line-height: 1.6;
+
+  text-shadow:
+    0 0 10px #ff00aa,
+    0 0 30px rgba(255, 0, 170, 0.6),
+    0 0 60px rgba(255, 0, 170, 0.3);
+
+  animation: glitch 4s infinite;
 }
 
+@keyframes glitch {
+  0%, 90%, 100% {
+    text-shadow:
+      0 0 10px #ff00aa,
+      0 0 30px rgba(255, 0, 170, 0.6),
+      0 0 60px rgba(255, 0, 170, 0.3);
+    transform: translate(0);
+  }
+  92% {
+    transform: translate(-3px, 1px);
+    text-shadow:
+      3px 0 #00f5ff,
+      -3px 0 #ff00aa,
+      0 0 20px rgba(255, 0, 170, 0.8);
+  }
+  94% {
+    transform: translate(3px, -1px);
+    text-shadow:
+      -3px 0 #00f5ff,
+      3px 0 #ff00aa,
+      0 0 20px rgba(255, 0, 170, 0.8);
+  }
+  96% {
+    transform: translate(0);
+    text-shadow:
+      0 0 10px #ff00aa,
+      0 0 30px rgba(255, 0, 170, 0.6);
+  }
+}
+
+/* Titre variante jaune (état d'attente adversaire) */
+.tetris-gameover-title[style*="neon-yellow"],
+.tetris-gameover h2[style*="neon-yellow"] {
+  color: #ffe600;
+  text-shadow:
+    0 0 10px #ffe600,
+    0 0 30px rgba(255, 230, 0, 0.5);
+  animation: wait-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes wait-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ── Textes ── */
 .tetris-gameover-text {
-  font-size: 1.2rem;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: #a0c8d0;
+  text-align: center;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
 }
 
+.tetris-gameover-text strong {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1rem;
+  color: #00f5ff;
+  text-shadow: 0 0 12px #00f5ff, 0 0 30px rgba(0, 245, 255, 0.4);
+}
+
+/* ── Résultat multijoueur ── */
+.multiplayer-result {
+  margin-top: 20px;
+  padding: 14px 20px;
+  border-radius: 2px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  animation: result-appear 0.5s ease-out;
+}
+
+@keyframes result-appear {
+  from { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.multiplayer-result p {
+  font-family: 'Press Start 2P', monospace !important;
+  font-size: 0.85rem !important;
+  letter-spacing: 0.05em;
+  line-height: 1.8;
+  margin: 0;
+}
+
+/* ── Bouton ── */
 .tetris-gameover-btn {
-  margin-top: 15px;
+  display: block;
+  margin: 28px auto 0;
+  padding: 14px 28px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #0a0a1a;
+  background: #00f5ff;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+
+  box-shadow:
+    0 0 0 2px #00f5ff,
+    0 0 20px rgba(0, 245, 255, 0.5),
+    4px 4px 0 rgba(0, 100, 110, 0.8);
+
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.tetris-gameover-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.25) 50%, transparent 70%);
+  transform: translateX(-100%);
+  transition: transform 0.5s ease;
+}
+
+.tetris-gameover-btn:hover {
+  transform: translate(-2px, -2px);
+  box-shadow:
+    0 0 0 2px #00f5ff,
+    0 0 35px rgba(0, 245, 255, 0.75),
+    6px 6px 0 rgba(0, 100, 110, 0.8);
+}
+
+.tetris-gameover-btn:hover::before {
+  transform: translateX(100%);
+}
+
+.tetris-gameover-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow:
+    0 0 0 2px #00f5ff,
+    0 0 12px rgba(0, 245, 255, 0.4),
+    2px 2px 0 rgba(0, 100, 110, 0.8);
+}
+
+/* ── Séparateur néon ── */
+.tetris-gameover hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #00f5ff, transparent);
+  margin: 20px 0;
+  opacity: 0.5;
 }

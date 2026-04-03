@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import ChatBox from '../chat/ChatBox';
 import ArcadeSelect from '../loyalty/ArcadeSelect';
@@ -21,9 +22,44 @@ const WaitingLobby = ({
   difficulty, setDifficulty, onStartGame, socket 
 }: WaitingLobbyProps) => {
 
-  // Récupération du pseudo réel enregistré dans LoyaltyDashboard
+  // Récupération de son propre pseudo
   const myPseudo = localStorage.getItem('player_username') || (isHost ? 'HÔTE' : 'INVITÉ');
-  const opponentPseudo = guestArrived ? (isHost ? 'GUEST_01' : 'HOST_PLAYER') : '???';
+  
+  // Remplacement de la constante par un état modifiable
+  const [opponentPseudo, setOpponentPseudo] = useState('???');
+
+  // Émission de son propre pseudo quand l'invité arrive
+  useEffect(() => {
+    // Dès que les deux joueurs sont dans le salon (ou si on est l'invité qui rejoint)
+    if (guestArrived || !isHost) {
+      socket.emit('send_pseudo', { roomCode, pseudo: myPseudo });
+    }
+  }, [guestArrived, isHost, myPseudo, roomCode, socket]);
+
+  // Réception du pseudo de l'adversaire
+  useEffect(() => {
+    const handleReceivePseudo = (data: { pseudo: string }) => {
+      setOpponentPseudo(data.pseudo);
+      
+      // Si je suis l'hôte et que je viens de recevoir le pseudo de l'invité,
+      // je lui renvoie le mien en réponse pour être certain qu'il l'ait.
+      if (isHost) {
+        socket.emit('send_pseudo', { roomCode, pseudo: myPseudo });
+      }
+    };
+
+    socket.on('receive_pseudo', handleReceivePseudo);
+    return () => {
+      socket.off('receive_pseudo', handleReceivePseudo);
+    };
+  }, [isHost, myPseudo, roomCode, socket]);
+
+  // Si le joueur adverse quitte (guestArrived devient false), on réinitialise son nom
+  useEffect(() => {
+    if (!guestArrived) {
+      setOpponentPseudo('???');
+    }
+  }, [guestArrived]);
 
   return (
     <div 

@@ -1,6 +1,6 @@
 // main application entry point and routing
-import { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react'; // Ajoute useRef ici
+import { BrowserRouter as Router, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import ReproductionGame from './components/game/reproduction/ReproductionGame';
 import TetrisGame from './components/game/tetris/TetrisGame';
@@ -15,6 +15,11 @@ import './App.css';
 const socket = io('http://localhost:3000');
 
 const MultiplayerHub = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  const hasAttemptedJoin = useRef(false);
+
   const [screen, setScreen] = useState<'home' | 'lobby' | 'playing'>('home');
   const [roomCode, setRoomCode] = useState('');
   const [joinCode, setJoinCode] = useState('');
@@ -25,12 +30,31 @@ const MultiplayerHub = () => {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [gameData, setGameData] = useState<any>(null);
 
+  useEffect(() => {
+    const roomFromUrl = searchParams.get('room');
+    
+    // On vérifie qu'on n'a pas déjà essayé de rejoindre
+    if (roomFromUrl && !hasAttemptedJoin.current) {
+      hasAttemptedJoin.current = true; // On verrouille immédiatement
+      setJoinCode(roomFromUrl); 
+      socket.emit('join_room', roomFromUrl); 
+    }
+  }, [searchParams]);
+
   // listen to socket events
   useEffect(() => {
     socket.on('room_created', (code: string) => {
       setRoomCode(code);
       setIsHost(true);
       setScreen('lobby');
+      navigate(`/?room=${code}`); // <--- AJOUTE JUSTE CETTE LIGNE ICI !
+    });
+
+    socket.on('room_joined_success', (code: string) => {
+      setIsHost(false);
+      setRoomCode(code);
+      setScreen('lobby');
+      navigate(`/?room=${code}`);
     });
 
     socket.on('player_joined', () => setGuestArrived(true));
@@ -39,25 +63,50 @@ const MultiplayerHub = () => {
       setScreen('playing');
     });
 
-    socket.on('room_error', (msg: string) => alert(msg));
+    socket.on('room_error', (msg: string) => {
+      alert(msg);
+      setJoinCode(''); // Vide le champ input
+      navigate('/');   // Nettoie l'URL pour la remettre à zéro
+    });
+
+
+    socket.on('player_left', () => setGuestArrived(false));
+
+    socket.on('room_closed', (msg: string) => {
+      alert(msg);
+      // On nettoie l'écran proprement SANS casser la connexion
+      setScreen('home');
+      setRoomCode('');
+      setJoinCode('');
+      setIsHost(false);
+      setGuestArrived(false);
+      setGameData(null);
+      navigate('/'); // <-- Retourne à l'URL propre
+    });
+
+    socket.on('back_to_lobby', () => {
+      setGameData(null); // On efface les données de la partie précédente
+      setScreen('lobby'); // On reaffiche le salon
+    });
 
     return () => {
       socket.off('room_created');
+      socket.off('room_joined_success');
       socket.off('player_joined');
       socket.off('game_started');
       socket.off('room_error');
+      socket.off('player_left');
+      socket.off('room_closed');
+      socket.off('back_to_lobby');
     };
-  }, []);
+  }, [navigate]); // N'oublie pas d'ajouter navigate ici
 
   // join an existing room
   const handleJoin = () => {
     if (!joinCode) return;
-    setIsHost(false);
-    setRoomCode(joinCode);
+    // On envoie juste la demande, et on laisse room_joined_success faire le reste
     socket.emit('join_room', joinCode);
-    setScreen('lobby');
   };
-
   // start the game for the host
   const handleStartGame = () => {
     socket.emit('launch_game', { roomCode, gameId: selectedGame, difficulty });
@@ -77,15 +126,22 @@ const MultiplayerHub = () => {
   // reset home and leave multiplayer server
   const handleReturnHome = (e: React.MouseEvent) => {
     e.preventDefault();
-    socket.disconnect();
-    socket.connect();
     
+    // 1. On prévient poliment le serveur qu'on quitte le salon
+    if (roomCode) {
+      socket.emit('leave_room');
+    }
+    
+    // 2. On réinitialise l'interface visuelle
     setScreen('home');
     setRoomCode('');
     setJoinCode('');
     setIsHost(false);
     setGuestArrived(false);
     setGameData(null);
+    
+    // 3. On nettoie l'URL
+    navigate('/');
   };
 
   return (
@@ -129,10 +185,7 @@ const MultiplayerHub = () => {
               <ReproductionGame 
                 roomCode={roomCode} 
                 socket={socket} 
-                /* CORRECTION : 
-                   - Si roomCode existe (Multi) : l'hôte prend son état local, le guest prend celui du serveur
-                   - Si pas de roomCode (Solo) : on passe undefined pour afficher le sélecteur
-                */
+
                 initialDifficulty={roomCode ? (isHost ? difficulty : gameData?.difficulty) : undefined} 
                 isHost={isHost} 
               />
@@ -154,37 +207,6 @@ const MultiplayerHub = () => {
 };
 
 function App() {
-  // retrieve loyalty_id from php session via api without modifying url
-  useEffect(() => {
-    const fetchLoyaltyId = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/user/getSessionLoyalty', {
-          credentials: 'include', 
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          if (data.loyalty_id) {
-            localStorage.setItem('loyalty_id', data.loyalty_id);
-            return; 
-          }
-        }
-      } catch (error) {
-        console.error('impossible de recuperer la session php:', error);
-      }
-
-      if (!localStorage.getItem('loyalty_id')) {
-        const anonId = 'anon_' + Math.random().toString(36).substring(2, 15);
-        localStorage.setItem('loyalty_id', anonId);
-      }
-    };
-
-    fetchLoyaltyId();
-  }, []);
-
   return (
     <Router>
       <Routes>
