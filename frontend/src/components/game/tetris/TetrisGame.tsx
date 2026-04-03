@@ -5,8 +5,8 @@ import DraggableBrick from '../DraggableBrick';
 import { Socket } from 'socket.io-client';
 import { gridToBricks, shapeToBricks, createSeededRNG } from '../../../utils/gameUtils';
 
-// On réutilise les superbes classes CSS et le fond du jeu Reproduction !
 import '../../CSS/ReproductionGame.css'; 
+import '../../CSS/GameOverTetris.css'
 import backgroundImage from '../../../assets/background_8bit.jpg';
 
 interface Piece {
@@ -72,13 +72,17 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
 
   const [opponentBoard, setOpponentBoard] = useState<(string | null)[][] | null>(null);
   const [opponentScore, setOpponentScore] = useState(0);
+  const [opponentFinished, setOpponentFinished] = useState(false); // NOUVEAU
 
   const rows = initialLevelData?.rows || 8;
   const cols = initialLevelData?.cols || 8;
 
   // Sauvegarde des scores
   useEffect(() => {
-    if (gameOver && !scoreSubmitted.current) {
+    const isMulti = !!roomCode;
+    const canShowResult = !isMulti || (gameOver && opponentFinished);
+
+    if (gameOver && canShowResult && !scoreSubmitted.current) {
       scoreSubmitted.current = true;
       const mode = roomCode ? 'multi' : 'solo';
       let result = 'none';
@@ -132,14 +136,32 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
       setOpponentBoard(data.board);
       setOpponentScore(data.score);
     };
+
+    const handleOpponentFinished = (data: any) => {
+      setOpponentScore(data.score); // Sécurise le score final
+      setOpponentFinished(true);
+    };
+
     socket.on('receive_tetris_state', handleReceiveState);
-    return () => { socket.off('receive_tetris_state', handleReceiveState); };
+    socket.on('opponent_finished', handleOpponentFinished);
+
+    return () => { 
+      socket.off('receive_tetris_state', handleReceiveState); 
+      socket.off('opponent_finished', handleOpponentFinished);
+    };
   }, [socket]);
 
   useEffect(() => {
     if (!socket || !roomCode || board.length === 0) return;
     socket.emit('send_tetris_state', { roomCode, board, availablePieces, score });
   }, [board, availablePieces, score, socket, roomCode]);
+
+  // Prévenir l'adversaire que j'ai terminé
+  useEffect(() => {
+    if (gameOver && roomCode) {
+      socket?.emit('player_finished', { roomCode, score });
+    }
+  }, [gameOver, roomCode, score, socket]);
 
   const handleRotate = (index: number, e?: React.MouseEvent) => {
     if (e) {
@@ -399,28 +421,38 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
                   cellSize={45} // Agrandie !
                 />
               ) : (
-                <div className="reproduction-gameover-panel" style={{ textAlign: 'center', width: '100%' }}>
-                  <h2 style={{ fontFamily: 'var(--font-heading)', color: 'var(--neon-green)', textShadow: '0 0 15px rgba(57,255,20,0.6)', fontSize: '2rem', marginBottom: '20px' }}>
-                    PARTIE TERMINÉE
-                  </h2>
-                  <p style={{ fontSize: '1.2rem', margin: '10px 0', color: '#fff' }}>votre score final est de : <strong>{score}</strong> points</p>
-                  
-                  {roomCode && (
-                    <div className="multiplayer-result" style={{ marginTop: '20px' }}>
-                      <p style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', color: score > opponentScore ? 'var(--neon-green)' : (score < opponentScore ? 'var(--neon-magenta)' : 'var(--neon-yellow)') }}>
-                        {score > opponentScore ? "🏆 VOUS AVEZ GAGNÉ ! 🏆" : (score < opponentScore ? "❌ VOUS AVEZ PERDU... ❌" : "🤝 C'EST UNE ÉGALITÉ ! 🤝")}
-                      </p>
-                    </div>
-                  )}
+                <div className="tetris-gameover">
+                  {(!roomCode || opponentFinished) ? (
+                    <>
+                      <h2 className="tetris-gameover-title">partie terminée !</h2>
+                      <p className="tetris-gameover-text">plus aucun bloc ne peut être placé.</p>
+                      <p className="tetris-gameover-text">votre score final est de : <strong>{score}</strong> points</p>
+                      
+                      {roomCode && (
+                        <div className="multiplayer-result" style={{ marginTop: '20px' }}>
+                          <p style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', color: score > opponentScore ? 'var(--neon-green)' : (score < opponentScore ? 'var(--neon-magenta)' : 'var(--neon-yellow)') }}>
+                            {score > opponentScore ? "🏆 VOUS AVEZ GAGNÉ ! 🏆" : (score < opponentScore ? "❌ VOUS AVEZ PERDU... ❌" : "🤝 C'EST UNE ÉGALITÉ ! 🤝")}
+                          </p>
+                        </div>
+                      )}
 
-                  <div style={{ marginTop: '30px' }}>
-                    <button 
-                      style={{ padding: '15px 30px', background: 'rgba(0,255,255,0.1)', color: 'var(--neon-cyan)', border: '2px solid var(--neon-cyan)', borderRadius: '8px', cursor: 'pointer', fontFamily: 'var(--font-heading)' }}
-                      onClick={() => window.location.reload()}
-                    >
-                      QUITTER / REJOUER
-                    </button>
-                  </div>
+                      <button 
+                        className="btn-lego btn-blue tetris-gameover-btn" 
+                        onClick={() => {
+                          if (roomCode) socket?.emit('return_to_lobby', roomCode);
+                          else window.location.reload();
+                        }}
+                      >
+                        retour au salon
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <h2 className="tetris-gameover-title" style={{color: 'var(--neon-yellow)'}}>ATTENTE DE L'ADVERSAIRE ⏳</h2>
+                      <p className="tetris-gameover-text">vous avez terminé avec <strong>{score}</strong> points.</p>
+                      <p className="tetris-gameover-text" style={{fontSize: '0.9rem', color: '#888'}}>l'adversaire joue encore...</p>
+                    </>
+                  )}
                 </div>
               )}
 

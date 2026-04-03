@@ -25,7 +25,7 @@ interface ReproductionGameProps {
   initialDifficulty?: string;
   isHost?: boolean;
 }
-
+  
 const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: ReproductionGameProps) => {
   const [levelPath, setLevelPath] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -45,6 +45,7 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
   // état de l'adversaire
   const [opponentBricks, setOpponentBricks] = useState<BrickObj[]>([]);
   const [opponentScore, setOpponentScore] = useState<number>(0);
+  const [opponentFinished, setOpponentFinished] = useState(false); 
   
   const gameStartedRef = useRef(false);
 
@@ -133,20 +134,25 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
        setOpponentBricks(data.placedBricks || []);
        setOpponentScore(data.score || 0);
        
-       // si le joueur est l'invité et qu'il reçoit la difficulté de l'hôte
        if (!isHost && data.difficulty && !gameStartedRef.current) {
            gameStartedRef.current = true;
            startGame(data.difficulty as Difficulty);
        }
     };
+
+    const handleOpponentFinished = (data: any) => {
+      setOpponentScore(data.score);
+      setOpponentFinished(true);
+    };
     
     socket.on('receive_repro_state', handleReceiveState);
-    // on écoute aussi l'événement tetris au cas où le backend ne relaie que celui-là
     socket.on('receive_tetris_state', handleReceiveState);
+    socket.on('opponent_finished', handleOpponentFinished);
     
     return () => {
       socket.off('receive_repro_state', handleReceiveState);
       socket.off('receive_tetris_state', handleReceiveState);
+      socket.off('opponent_finished', handleOpponentFinished);
     };
   }, [socket, isHost]);
 
@@ -154,7 +160,6 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
   useEffect(() => {
     if (!socket || !roomCode || targetBricks.length === 0) return;
     
-    // calculer le pourcentage actuel à partager avec l'adversaire
     let currentCorrect = 0;
     const currentGridMap = Array(rows).fill(null).map(() => Array(cols).fill(null));
     placedBricks.forEach(b => {
@@ -181,9 +186,37 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
     };
 
     socket.emit('send_repro_state', payload);
-    // on utilise aussi le canal tetris pour forcer le backend à relayer la difficulté à l'invité
     socket.emit('send_tetris_state', payload);
   }, [placedBricks, socket, roomCode, targetBricks, rows, cols, levelPath]);
+
+  // === CORRECTION DU USEEFFECT ICI ===
+  // Prévenir l'adversaire que j'ai terminé
+  useEffect(() => {
+    if (gameOver && roomCode) {
+      // On utilise targetBricks au lieu de levelData qui n'existe pas
+      const targetTotalArea = targetBricks.reduce((acc, b) => acc + (b.w * b.h), 0);
+      const finalPercentage = targetTotalArea > 0 ? Math.round((score / targetTotalArea) * 100) : 0;
+
+      socket?.emit('player_finished', { roomCode, score: finalPercentage });
+    }
+  }, [gameOver, roomCode, score, targetBricks, socket]);
+  // ===================================
+
+  const mode = roomCode ? 'multi' : 'solo';
+  
+  // calculer la victoire en multijoueur ou en solo
+  // On recalcule le pourcentage actuel pour l'affichage conditionnel plus bas
+  const targetTotalAreaDisplay = targetBricks.reduce((acc, b) => acc + (b.w * b.h), 0);
+  const percentage = targetTotalAreaDisplay > 0 ? Math.round((score / targetTotalAreaDisplay) * 100) : 0;
+
+  let result = 'none';
+  if (mode === 'multi') {
+      if (percentage > opponentScore) result = 'win';
+      else if (percentage < opponentScore) result = 'loss';
+      else result = 'draw';
+  } else {
+      result = percentage >= 80 ? 'win' : 'loss';
+  }
 
   // passer à la brique suivante dans la file
   const nextTurn = (newPlaced: BrickObj[], currentQueue: Omit<BrickObj, 'x' | 'y'>[]) => {
@@ -275,7 +308,6 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
       );
     }
     if (initialDifficulty) {
-    /* Correction de la couleur pour que le texte soit visible */
       return <h2 style={{marginTop: "50px", color: "var(--neon-cyan)", textAlign: 'center'}}>préparation du niveau... ⏳</h2>;
     }
     return <DifficultySelector onSelect={startGame} />;
@@ -284,26 +316,8 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
   if (loading) return <h2 style={{color: "var(--neon-cyan)", textAlign: 'center'}}>chargement du niveau... ⏳</h2>;
 
   const currentPreview = currentBrick ? [{ x: 0, y: 0, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color }] : undefined;
-
-  // déterminer les statistiques pour l'envoi à la base de données
-  const targetTotalArea = targetBricks.reduce((acc, b) => acc + (b.w * b.h), 0);
-  const percentage = targetTotalArea > 0 ? Math.round((score / targetTotalArea) * 100) : 0;
-  const mode = roomCode ? 'multi' : 'solo';
-  
-  // calculer la victoire en multijoueur ou en solo
-  let result = 'none';
-  if (mode === 'multi') {
-      if (percentage > opponentScore) result = 'win';
-      else if (percentage < opponentScore) result = 'loss';
-      else result = 'draw';
-  } else {
-      result = percentage >= 80 ? 'win' : 'loss';
-  }
-  
-
   const difficulty = levelPath?.split('/')[1] || 'normal';
 
-  // --- NOUVEAU RENDU VISUEL (3 COLONNES AVEC BEAUX CONTENEURS) ---
   return (
     <div 
       className="repro-page-wrapper" 
@@ -317,10 +331,7 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
     >
       <div className="repro-layout-container">
         
-        {/* ⬅️ COLONNE DE GAUCHE : L'objectif et les outils */}
         <div className="repro-side-panel">
-          
-          {/* Le panneau du modèle à reproduire */}
           <div className="arcade-panel panel-magenta">
             <div className="arcade-panel-header">MODÈLE CIBLE</div>
             <div className="arcade-panel-content">
@@ -328,7 +339,6 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
             </div>
           </div>
 
-          {/* Le panneau pour la brique actuelle */}
           {!gameOver && (
             <div className="arcade-panel panel-cyan">
               <div className="arcade-panel-header">BRIQUE EN MAIN</div>
@@ -337,10 +347,8 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
               </div>
             </div>
           )}
-          
         </div>
 
-        {/* ⬇️ COLONNE CENTRALE : Le terrain de jeu */}
         <div className="repro-center-panel">
           <div className="arcade-panel panel-cyan" style={{ width: '100%' }}>
             <div className="arcade-panel-header">GRILLE DU JOUEUR ({rows}x{cols})</div>
@@ -359,21 +367,54 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
                   cellSize={45} 
                 />
               ) : (
-                <div className="reproduction-gameover-panel" style={{ textAlign: 'center', width: '100%' }}>
-                    <GameOverReproduction 
-                    score={percentage} 
-                    mode={mode}
-                    result={result}
-                    difficulty={difficulty}
-                    onRestart={() => window.location.reload()} 
-                    onReturnHome={() => { window.location.href = '/'; }}
-                  />
-                  {roomCode && (
-                      <div className="multiplayer-result" style={{ marginTop: '20px' }}>
-                        <p style={{ fontFamily: 'var(--font-heading)', color: result === 'win' ? 'var(--neon-green)' : result === 'loss' ? 'var(--neon-magenta)' : 'var(--neon-yellow)' }}>
-                          {result === 'win' ? "🏆 VOUS AVEZ GAGNÉ ! 🏆" : (result === 'loss' ? "❌ VOUS AVEZ PERDU... ❌" : "🤝 C'EST UNE ÉGALITÉ ! 🤝")}
-                        </p>
+                <div className="reproduction-gameover-panel">
+                  {(!roomCode || opponentFinished) ? (
+                    <>
+                      {roomCode && (
+                        <div className={`go-result-banner go-result-${result}`}>
+                          <div className="go-result-scanline" />
+                          <span className="go-result-icon">
+                            {result === 'win' ? '🏆' : result === 'loss' ? '💀' : '🤝'}
+                          </span>
+                          <div className="go-result-texts">
+                            <span className="go-result-label">
+                              {result === 'win' ? 'VICTOIRE' : result === 'loss' ? 'DÉFAITE' : 'ÉGALITÉ'}
+                            </span>
+                            <span className="go-result-scores">
+                              VOUS {percentage}% &mdash; ADV {opponentScore}%
+                            </span>
+                          </div>
+                          <div className="go-result-glow" />
+                        </div>
+                      )}
+                      <GameOverReproduction 
+                        score={percentage} 
+                        mode={mode}
+                        result={result}
+                        difficulty={difficulty}
+                        onRestart={() => {
+                          if (roomCode) socket?.emit('return_to_lobby', roomCode);
+                          else window.location.reload();
+                        }} 
+                        onReturnHome={() => { window.location.href = '/'; }}
+                      />
+                    </>
+                  ) : (
+                    <div className="go-waiting-card">
+                      <div className="go-waiting-header">
+                        <span className="go-waiting-dot" /><span className="go-waiting-dot" /><span className="go-waiting-dot" />
                       </div>
+                      <div className="go-waiting-icon">⏳</div>
+                      <h2 className="go-waiting-title">EN ATTENTE</h2>
+                      <p className="go-waiting-sub">L'ADVERSAIRE TERMINE SA CONSTRUCTION</p>
+                      <div className="go-waiting-score-box">
+                        <span className="go-waiting-score-label">VOTRE PRÉCISION</span>
+                        <span className="go-waiting-score-value">{percentage}%</span>
+                      </div>
+                      <div className="go-waiting-bar">
+                        <div className="go-waiting-bar-fill" />
+                      </div>
+                    </div>
                   )}
                 </div>
               )}
@@ -382,10 +423,7 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
           </div>
         </div>
 
-        {/* ➡️ COLONNE DE DROITE : Le temps et l'adversaire */}
         <div className="repro-side-panel">
-          
-          {/* Le panneau du chrono */}
           {!gameOver && (
             <div className="arcade-panel panel-yellow">
               <div className="arcade-panel-header">TEMPS RESTANT</div>
@@ -395,7 +433,6 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
             </div>
           )}
 
-          {/* Le panneau des contrôles (Valider / Abandonner) */}
           {!gameOver && (
             <div className="arcade-panel panel-magenta">
               <div className="arcade-panel-header">CONTRÔLES</div>
@@ -410,16 +447,13 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
             </div>
           )}
 
-          {/* Panneau de l'adversaire (Multijoueur uniquement) */}
           {socket && roomCode && (
             <div className="arcade-panel panel-magenta">
               <div className="arcade-panel-header">ADVERSAIRE ⚔️</div>
               <div className="arcade-panel-content">
-                
                 <div style={{ color: 'var(--neon-cyan)', marginBottom: '15px', fontFamily: 'var(--font-heading)', fontSize: '0.8rem' }}>
                   PRÉCISION : {opponentScore}%
                 </div>
-
                 <Board 
                   rows={rows}
                   cols={cols}

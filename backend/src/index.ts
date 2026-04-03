@@ -7,9 +7,6 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';     
 
 import playerRoutes from './routes/playerRoutes';
-import mosaicRoutes from './routes/mosaicRoutes';
-import GameHistory from './models/GameHistory';
-import { Player } from './models/Player';
 
 dotenv.config();
 
@@ -49,29 +46,52 @@ app.get('/', (req: Request, res: Response) => {
 
 // declare routes
 app.use('/api/player', playerRoutes);
-app.use('/api/mosaic', mosaicRoutes);
+
+const playerSessions = new Map<string, { roomCode: string, role: 'host' | 'guest' }>();
 
 // handle socket.io events
 io.on('connection', (socket) => {
   console.log(`un joueur s'est connecte (id: ${socket.id})`);
 
   // create a room
+  // create a room
   socket.on('create_room', () => {
+    // === NOUVEAU : Nettoyage de l'ancien salon ===
+    const existingSession = playerSessions.get(socket.id);
+    if (existingSession) {
+      socket.leave(existingSession.roomCode); // Quitte l'ancien
+    }
+    // ===========================================
+
     const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
     socket.join(roomCode);
+    
+    // ON MÉMORISE L'HÔTE
+    playerSessions.set(socket.id, { roomCode, role: 'host' });
+    
     console.log(`le joueur ${socket.id} a cree le salon : ${roomCode}`);
     socket.emit('room_created', roomCode);
   });
 
   // join an existing room
   socket.on('join_room', (roomCode) => {
+    
+    // 1. PROTECTION : si le joueur est déjà dans le salon, on ne refait pas tout
+    if (socket.rooms.has(roomCode)) return;
+
     const room = io.sockets.adapter.rooms.get(roomCode);
     
     if (room && room.size === 1) { 
       socket.join(roomCode);
+      
+      // On mémorise l'invité
+      playerSessions.set(socket.id, { roomCode, role: 'guest' });
       console.log(`le joueur ${socket.id} a rejoint le salon : ${roomCode}`);
       
       io.to(roomCode).emit('player_joined', "le joueur 2 a rejoint le salon");
+      
+      // 2. CONFIRMATION (C'est ça qui manquait !)
+      socket.emit('room_joined_success', roomCode);
     } 
     else if (room && room.size >= 2) {
       socket.emit('room_error', "ce salon est deja plein");
@@ -80,26 +100,50 @@ io.on('connection', (socket) => {
       socket.emit('room_error', "ce code de salon n'existe pas");
     }
   });
+  socket.on('leave_room', () => {
+    const session = playerSessions.get(socket.id);
+    if (session) {
+      socket.leave(session.roomCode); // Retire le socket de la room
+      
+      if (session.role === 'host') {
+        socket.to(session.roomCode).emit('room_closed', "L'hôte a fermé le salon.");
+      } else if (session.role === 'guest') {
+        socket.to(session.roomCode).emit('player_left');
+      }
+      
+      playerSessions.delete(socket.id); // On oublie que ce joueur était dans un salon
+    }
+  });
 
+  socket.on('disconnect', () => {
+    const session = playerSessions.get(socket.id);
+    if (session) {
+      if (session.role === 'host') {
+        // L'hôte part : on avertit l'invité de la destruction du salon
+        socket.to(session.roomCode).emit('room_closed', "L'hôte a fermé ou quitté le salon.");
+      } else if (session.role === 'guest') {
+        // L'invité part : on prévient l'hôte pour qu'il puisse attendre quelqu'un d'autre
+        socket.to(session.roomCode).emit('player_left');
+      }
+      playerSessions.delete(socket.id); // On nettoie la mémoire
+    }
+    console.log(`le joueur ${socket.id} s'est deconnecte`);
+  });
+
+  // launch game based on mode
   // launch game based on mode
   socket.on('launch_game', async (data) => {
     try {
       if (data.gameId === 'reproduction') {
-        // fetch data for reproduction game
-        const response = await fetch('http://localhost:3000/api/mosaic/random');
-        const levelData = await response.json();
-        
         io.to(data.roomCode).emit('game_started', {
           message: "la partie commence",
           gameId: 'reproduction',
-          levelData: levelData
+          difficulty: data.difficulty
         });
       } else if (data.gameId === 'tetris') {
-        // only send grid dimensions, players will generate independent blocks locally
         io.to(data.roomCode).emit('game_started', {
           message: "la partie commence",
-          gameId: 'tetris',
-          levelData: { rows: 8, cols: 8 } 
+          gameId: 'tetris'
         });
       }
     } catch (err) {
@@ -107,43 +151,27 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on('game_finished', async (data) => {
-    const { loyaltyId, gameId, score } = data;
-    
-    // 1. Récupération de la politique (simulée ici, idéalement fetch depuis PHP)
-    // Règle simple : 1 point par tranche de 10 points de score + 5 points de participation
-    const pointsEarned = Math.floor(score / 10) + 5;
-    
-    // Date d'expiration (ex: dans 30 jours)
-    const expirationDate = new Date();
-    expirationDate.setDate(expirationDate.getDate() + 30);
-
-    try {
-        // 2. Enregistrer l'historique
-        await GameHistory.create({
-            loyalty_id: loyaltyId,
-            gameId,
-            score,
-            pointsEarned,
-            playedAt: new Date()
-        });
-
-        // 3. Ajouter les points au joueur
-        await Player.findOneAndUpdate(
-            { loyaltyId },
-            { $push: { loyaltyPoints: { amount: pointsEarned, expirationDate } } },
-            { upsert: true } // Crée le joueur s'il n'existe pas (visiteur)
-        );
-
-        socket.emit('points_updated', { pointsEarned, totalPoints: pointsEarned });
-    } catch (err) {
-        console.error("Erreur enregistrement points:", err);
-    }
-  });
-
   // sync tetris game state between players
   socket.on('send_tetris_state', (data) => {
     socket.to(data.roomCode).emit('receive_tetris_state', data);
+  });
+
+  socket.on('send_repro_state', (data) => {
+    socket.to(data.roomCode).emit('receive_repro_state', data);
+  });
+
+  // Relayer la fin de partie d'un joueur à son adversaire
+  socket.on('player_finished', (data) => {
+    socket.to(data.roomCode).emit('opponent_finished', data);
+  });
+
+  socket.on('return_to_lobby', (roomCode) => {
+    io.to(roomCode).emit('back_to_lobby');
+  });
+
+  socket.on('send_pseudo', (data) => {
+    // On envoie le pseudo reçu à tous les autres membres du salon
+    socket.to(data.roomCode).emit('receive_pseudo', data);
   });
 
   // handle chat
