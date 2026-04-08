@@ -34,3 +34,31 @@
   margin-right: 8px;
   border: 1px solid #000;
 }
+
+/* ============================================================
+   RESPONSIVE — SCORE LEGEND
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+  .tetris-legend {
+    margin-top: 16px;
+    padding: 12px;
+  }
+
+  .tetris-legend-list {
+    font-size: 0.78rem;
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+
+  .tetris-legend {
+    margin-top: 8px;
+    padding: 8px 12px;
+  }
+
+  .tetris-legend-list {
+    font-size: 0.72rem;
+  }
+}

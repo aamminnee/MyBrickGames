@@ -88,3 +88,75 @@
   25%       { transform: translateX(-2px); }
   75%       { transform: translateX(2px); }
 }
+
+/* ============================================================
+   RESPONSIVE — TIMER
+   ============================================================ */
+
+/* ---- Mobile (≤ 600px) ---- */
+@media (max-width: 600px) {
+
+  .timer-container {
+    min-width: 110px;
+    padding: 9px 14px;
+    gap: 4px;
+  }
+
+  .timer-label {
+    font-size: 0.52rem;
+    letter-spacing: 2.5px;
+  }
+
+  .timer-value {
+    font-size: 1.8rem;
+  }
+
+  .timer-unit {
+    font-size: 0.8rem;
+  }
+}
+
+
+/* ---- Petit mobile (≤ 400px) ---- */
+@media (max-width: 400px) {
+
+  .timer-container {
+    min-width: 90px;
+    padding: 7px 10px;
+  }
+
+  .timer-value {
+    font-size: 1.5rem;
+  }
+}
+
+
+/* ---- Paysage téléphone ---- */
+@media (max-height: 500px) and (orientation: landscape) {
+
+  .timer-container {
+    min-width: 100px;
+    padding: 7px 12px;
+    gap: 3px;
+    flex-direction: row;         /* Chiffre et label sur une ligne */
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
+  .timer-label {
+    font-size: 0.48rem;
+    letter-spacing: 2px;
+    order: 2;                    /* Label après le chiffre */
+    margin-left: 6px;
+  }
+
+  .timer-value {
+    font-size: 1.4rem;
+    order: 1;
+  }
+
+  .timer-bar-track {
+    display: none;               /* Cache la barre en landscape pour gagner de la hauteur */
+  }
+}

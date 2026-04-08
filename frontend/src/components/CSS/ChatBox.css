@@ -407,3 +407,127 @@
   border-color: #ff003c;
   box-shadow: 0 0 10px rgba(255, 0, 60, 0.5);
 }
+
+/* ============================================================
+   RESPONSIVE — MOBILE (≤ 650px)
+   ============================================================ */
+@media (max-width: 650px) {
+
+  .chat-container {
+    border-radius: 12px;
+  }
+
+  .chat-header {
+    padding: 12px 14px;
+    gap: 8px;
+  }
+
+  .chat-header__title {
+    font-size: 0.85rem;
+  }
+
+  .chat-header__badge {
+    font-size: 0.6rem;
+    padding: 2px 8px;
+  }
+
+  .chat-messages {
+    padding: 14px 12px;
+    gap: 10px;
+  }
+
+  .chat-msg-wrapper {
+    max-width: 90%;
+  }
+
+  .chat-msg-bubble {
+    font-size: 0.82rem;
+    padding: 9px 13px;
+  }
+
+  .chat-input-area {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .chat-input {
+    font-size: 0.82rem;
+    padding: 9px 13px;
+  }
+
+  .chat-send-btn {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+  }
+
+  /* Panneau flottant : pleine largeur sur mobile */
+  .chat-floating-panel {
+    right: 10px;
+    left: 10px;
+    width: auto;
+    bottom: 100px;
+  }
+
+  .chat-floating-btn {
+    bottom: 20px;
+    right: 16px;
+    width: 52px;
+    height: 52px;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
+   ============================================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+
+  .chat-header {
+    padding: 8px 14px;
+  }
+
+  .chat-header__title {
+    font-size: 0.8rem;
+  }
+
+  .chat-messages {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .chat-msg-bubble {
+    font-size: 0.78rem;
+    padding: 7px 12px;
+  }
+
+  .chat-input-area {
+    padding: 8px 12px;
+  }
+
+  .chat-input {
+    font-size: 0.78rem;
+    padding: 7px 12px;
+  }
+
+  .chat-send-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  /* Panneau flottant compact en landscape */
+  .chat-floating-panel {
+    bottom: 70px;
+    right: 16px;
+    width: 300px;
+    height: 60vh;
+    max-height: unset;
+  }
+
+  .chat-floating-btn {
+    bottom: 14px;
+    right: 14px;
+    width: 46px;
+    height: 46px;
+  }
+}

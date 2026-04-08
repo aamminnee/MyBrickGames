@@ -525,3 +525,259 @@
   background: rgba(0, 229, 255, 0.05);
   border-left: 3px solid var(--neon-cyan);
 }
+
+/* ============================================================
+   RESPONSIVE — TABLETTE (≤ 900px)
+   ============================================================ */
+@media (max-width: 900px) {
+
+  /* Réduit les paddings latéraux tout en gardant la place
+     pour les boutons prev/next (positionnés à left/right: 15px) */
+  .loyalty-container {
+    padding: 30px 50px;
+  }
+
+  /* Stats : 2 colonnes au lieu de 3 */
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+
+  /* Succès : 2 colonnes déjà, on garde mais on réduit le gap */
+  .achiev-grid {
+    gap: 15px;
+    max-height: 420px;
+  }
+
+  /* Filtres : légère compression */
+  .filters-bar {
+    gap: 20px;
+  }
+
+  .arcade-select-container {
+    width: 180px;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — MOBILE (≤ 600px)
+   ============================================================ */
+@media (max-width: 600px) {
+
+  /* Padding réduit mais suffit pour les boutons ◄ ► */
+  .loyalty-container {
+    padding: 25px 45px;
+  }
+
+  /* Carte slide : moins de padding interne */
+  .loyalty-card {
+    padding: 20px 16px;
+  }
+
+  /* Titre */
+  .loyalty-title {
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+
+  /* Boutons de navigation plus petits */
+  .slider-btn {
+    font-size: 1rem;
+    padding: 10px 12px;
+  }
+
+  /* Stats : 1 colonne */
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  /* Succès : 1 colonne */
+  .achiev-grid {
+    grid-template-columns: 1fr;
+    max-height: 400px;
+    gap: 12px;
+  }
+
+  /* Filtres : empilés verticalement */
+  .filters-bar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .filter-group {
+    width: 100%;
+  }
+
+  /* Select pleine largeur */
+  .arcade-select-container {
+    width: 100%;
+  }
+
+  /* Onglets succès : 2 par ligne */
+  .achiev-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .achiev-tab {
+    font-size: 0.5rem;
+    padding: 10px 6px;
+  }
+
+  /* Carte succès : on réduit la hauteur min */
+  .achiev-card {
+    min-height: 90px;
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .achiev-icon-wrapper {
+    font-size: 1.5rem;
+  }
+
+  .achiev-title {
+    font-size: 0.52rem;
+  }
+
+  .achiev-objective {
+    font-size: 0.55rem;
+  }
+
+  /* Historique : empiler gauche/droite */
+  .loyalty-history-item {
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.6rem;
+  }
+
+  .loyalty-history-item > div:last-child {
+    text-align: left;
+  }
+
+  /* Progression globale : retire le float */
+  .global-progress-stats {
+    float: none;
+    display: block;
+    margin-top: 6px;
+    color: #888;
+    font-size: 0.6rem;
+  }
+
+  .global-progress-title {
+    font-size: 0.7rem;
+  }
+
+  /* Stat box points */
+  .loyalty-stat-value {
+    font-size: 2.2rem;
+  }
+
+  /* Label inputs */
+  .loyalty-input-group label {
+    font-size: 0.65rem;
+  }
+
+  /* Indicateurs losanges */
+  .slider-indicators {
+    gap: 10px;
+    margin-top: 0;
+    padding-bottom: 12px;
+  }
+
+  .indicator {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — PETIT MOBILE (≤ 400px)
+   ============================================================ */
+@media (max-width: 400px) {
+
+  .loyalty-container {
+    padding: 20px 38px;
+  }
+
+  .loyalty-card {
+    padding: 16px 12px;
+  }
+
+  .loyalty-title {
+    font-size: 0.72rem;
+  }
+
+  .slider-btn {
+    font-size: 0.85rem;
+    padding: 8px 10px;
+  }
+
+  .achiev-tab {
+    font-size: 0.42rem;
+    padding: 8px 4px;
+  }
+
+  .stat-card .value {
+    font-size: 1.2rem;
+  }
+
+  .stat-card h4 {
+    font-size: 0.5rem;
+  }
+
+  .loyalty-stat-value {
+    font-size: 1.8rem;
+  }
+
+  /* Petit texte loyalty ID */
+  .loyalty-connection-group p {
+    font-size: 0.6rem !important;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
+   ============================================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+
+  .loyalty-container {
+    padding: 15px 50px;
+  }
+
+  .loyalty-card {
+    padding: 16px 20px;
+  }
+
+  .loyalty-title {
+    font-size: 0.8rem;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+
+  /* Réduit la hauteur scrollable des succès en landscape */
+  .achiev-grid {
+    max-height: 280px;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .loyalty-stat-value {
+    font-size: 2rem;
+  }
+
+  .global-progress-container {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+}

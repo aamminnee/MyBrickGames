@@ -95,3 +95,87 @@
   background: rgba(57,255,20,0.08);
   box-shadow: 0 0 28px rgba(57,255,20,0.25);
 }
+
+/* ============================================================
+   RESPONSIVE — GAME OVER REPRODUCTION
+   ============================================================ */
+
+/* ---- Mobile (≤ 600px) ---- */
+@media (max-width: 600px) {
+
+  .reproduction-gameover-panel {
+    padding: 22px 18px;
+    margin: 12px 0;
+    border-radius: 10px;
+  }
+
+  .reproduction-gameover-title {
+    font-size: 1.4rem;
+    letter-spacing: 3px;
+  }
+
+  .reproduction-gameover-text {
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+  }
+
+  .reproduction-gameover-btn {
+    margin-top: 16px;
+  }
+
+  .reproduction-gameover-btn button,
+  .reproduction-gameover-btn a {
+    font-size: 0.65rem;
+    padding: 12px 24px;
+    letter-spacing: 2px;
+  }
+}
+
+
+/* ---- Petit mobile (≤ 400px) ---- */
+@media (max-width: 400px) {
+
+  .reproduction-gameover-panel {
+    padding: 16px 14px;
+  }
+
+  .reproduction-gameover-title {
+    font-size: 1.1rem;
+    letter-spacing: 2px;
+  }
+
+  .reproduction-gameover-text {
+    font-size: 0.78rem;
+  }
+}
+
+
+/* ---- Paysage téléphone ---- */
+@media (max-height: 500px) and (orientation: landscape) {
+
+  .reproduction-gameover-panel {
+    padding: 14px 18px;
+    margin: 6px 0;
+  }
+
+  .reproduction-gameover-title {
+    font-size: 1.1rem;
+    letter-spacing: 3px;
+    margin-bottom: 8px;
+  }
+
+  .reproduction-gameover-text {
+    font-size: 0.8rem;
+    margin: 4px 0;
+  }
+
+  .reproduction-gameover-btn {
+    margin-top: 10px;
+  }
+
+  .reproduction-gameover-btn button,
+  .reproduction-gameover-btn a {
+    font-size: 0.6rem;
+    padding: 10px 20px;
+  }
+}
