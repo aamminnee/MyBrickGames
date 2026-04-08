@@ -35,3 +35,84 @@
 .header-separator {
   color: #333;
 }
+
+
+/* ============================================
+   RESPONSIVE — TABLETTE (≤ 768px)
+   ============================================ */
+@media (max-width: 768px) {
+
+  .game-header {
+    padding: 12px 16px;
+    gap: 12px;
+  }
+
+  .header-link, .header-link-home {
+    font-size: 0.6rem;
+    padding: 6px 10px;
+    letter-spacing: 0.5px;
+  }
+}
+
+
+/* ============================================
+   RESPONSIVE — MOBILE (≤ 480px)
+   ============================================ */
+@media (max-width: 480px) {
+
+  .game-header {
+    padding: 10px 8px;
+    gap: 4px;
+    flex-wrap: wrap;          /* Permet aux liens de passer à la ligne si besoin */
+    justify-content: center;
+  }
+
+  .header-link, .header-link-home {
+    font-size: 0.5rem;
+    padding: 5px 6px;
+    letter-spacing: 0;
+  }
+
+  .header-separator {
+    font-size: 0.5rem;
+  }
+}
+
+
+/* ============================================
+   RESPONSIVE — TRÈS PETIT MOBILE (≤ 360px)
+   ============================================ */
+@media (max-width: 360px) {
+
+  .game-header {
+    gap: 2px;
+  }
+
+  .header-link, .header-link-home {
+    font-size: 0.45rem;
+    padding: 4px 5px;
+  }
+
+  /* Cache le séparateur "|" pour gagner de la place */
+  .header-separator {
+    display: none;
+  }
+}
+
+
+/* ============================================
+   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
+   ============================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+
+  .game-header {
+    padding: 6px 16px;
+    gap: 10px;
+    border-bottom-width: 2px;
+  }
+
+  .header-link, .header-link-home {
+    font-size: 0.5rem;
+    padding: 4px 8px;
+  }
+}

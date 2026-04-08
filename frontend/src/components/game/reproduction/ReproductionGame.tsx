@@ -7,8 +7,10 @@ import DifficultySelector, { type Difficulty } from './DifficultySelector';
 import TargetModel from './TargetModel';
 import GameOverReproduction from './GameOverReproduction';
 import ActiveBrick from './ActiveBrick';
+import DraggableBrick from '../DraggableBrick';
 import { Socket } from 'socket.io-client';
 import '../../CSS/ReproductionGame.css';
+import '../../CSS/ReproductionGame.mobile.css';
 import backgroundImage from '../../../assets/arcade.jpg';
 
 
@@ -46,6 +48,7 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
   const [opponentBricks, setOpponentBricks] = useState<BrickObj[]>([]);
   const [opponentScore, setOpponentScore] = useState<number>(0);
   const [opponentFinished, setOpponentFinished] = useState(false); 
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
   
   const gameStartedRef = useRef(false);
 
@@ -200,6 +203,16 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
       socket?.emit('player_finished', { roomCode, score: finalPercentage });
     }
   }, [gameOver, roomCode, score, targetBricks, socket]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileLandscape(window.innerHeight <= 500 && window.innerWidth > window.innerHeight);
+    };
+    
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   // ===================================
 
   const mode = roomCode ? 'multi' : 'solo';
@@ -317,6 +330,135 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
 
   const currentPreview = currentBrick ? [{ x: 0, y: 0, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color }] : undefined;
   const difficulty = levelPath?.split('/')[1] || 'normal';
+
+  // ====================================================================
+  // 📱 AFFICHAGE SPÉCIAL MOBILE PAYSAGE (Complet mais compact)
+  // ====================================================================
+  if (isMobileLandscape) {
+    return (
+      <div className="repro-mobile-wrapper" style={{ backgroundImage: `url(${backgroundImage})` }}>
+        
+        {/* ⬅️ GAUCHE : Modèle Cible et Brique Active */}
+        <div className="repro-mobile-side repro-mobile-left">
+          <div className="repro-mobile-box target-box">
+            <span className="mobile-label">MODÈLE CIBLE</span>
+            <div className="repro-mobile-target">
+              <Board rows={rows} cols={cols} bricks={targetBricks} cellSize={8} />
+            </div>
+          </div>
+
+          {!gameOver && (
+            <div className="repro-mobile-box active-box">
+              <span className="mobile-label">BRIQUE ACTIVE</span>
+              <div className="repro-mobile-active">
+                <DraggableBrick
+                  disabled={!currentBrick}
+                  rows={currentBrick?.h || 1}
+                  cols={currentBrick?.w || 1}
+                  bricks={currentBrick ? [{ x: 0, y: 0, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color }] : []}
+                  cellSize={16} 
+                  onDragStart={(e) => { e.dataTransfer.setData('text/plain', 'brique'); e.dataTransfer.effectAllowed = 'move'; }}
+                  onDragEnd={() => setHoverPos(null)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* ⬇️ CENTRE : Grille du joueur */}
+        <div className="repro-mobile-center">
+          {!gameOver ? (
+            <div className="repro-mobile-board-wrapper">
+              <Board 
+                rows={rows} 
+                cols={cols} 
+                bricks={placedBricks} 
+                onCellDrop={handleCellDrop} 
+                onCellHover={handleCellHover}
+                onMouseLeave={() => setHoverPos(null)}
+                previewBricks={currentPreview}
+                hoverPos={hoverPos}
+                cellSize={26} // Grande grille
+              />
+            </div>
+          ) : (
+            <div className="repro-gameover" style={{ transform: 'scale(0.85)' }}>
+              {(!roomCode || opponentFinished) ? (
+                <>
+                  {roomCode && (
+                    <div className={`go-result-banner go-result-${result}`} style={{ marginBottom: '10px', padding: '10px' }}>
+                      <span className="go-result-icon">{result === 'win' ? '🏆' : result === 'loss' ? '💀' : '🤝'}</span>
+                      <div className="go-result-texts">
+                        <span className="go-result-label" style={{ fontSize: '1rem' }}>
+                          {result === 'win' ? 'VICTOIRE' : result === 'loss' ? 'DÉFAITE' : 'ÉGALITÉ'}
+                        </span>
+                        <span className="go-result-scores">VOUS {percentage}% — ADV {opponentScore}%</span>
+                      </div>
+                    </div>
+                  )}
+                  <GameOverReproduction 
+                    score={percentage} 
+                    mode={mode}
+                    result={result}
+                    difficulty={difficulty}
+                    onRestart={() => {
+                      if (roomCode) socket?.emit('return_to_lobby', roomCode);
+                      else window.location.reload();
+                    }} 
+                    onReturnHome={() => { window.location.href = '/'; }}
+                  />
+                </>
+              ) : (
+                <div className="go-waiting-card" style={{ padding: '15px' }}>
+                  <div className="go-waiting-icon" style={{ fontSize: '1.5rem' }}>⏳</div>
+                  <h2 className="go-waiting-title" style={{ fontSize: '1rem' }}>ATTENTE...</h2>
+                  <div className="go-waiting-score-box">
+                    <span className="go-waiting-score-label">VOTRE PRÉCISION</span>
+                    <span className="go-waiting-score-value" style={{ fontSize: '1.5rem' }}>{percentage}%</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ➡️ DROITE : Timer, Actions et Adversaire */}
+        <div className="repro-mobile-side repro-mobile-right">
+          {!gameOver && (
+            <div className="repro-mobile-box timer-box">
+              <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
+            </div>
+          )}
+
+          {!gameOver && (
+            <div className="repro-mobile-box actions-box">
+              <button className="btn-lego btn-green" onClick={handleTimeout} style={{ fontSize: '0.5rem', padding: '8px', width: '100%', marginBottom: '6px' }}>
+                PASSER LE TOUR
+              </button>
+              <button className="btn-lego btn-red" onClick={() => endGame(placedBricks)} style={{ fontSize: '0.5rem', padding: '8px', width: '100%' }}>
+                VALIDER & FINIR
+              </button>
+            </div>
+          )}
+
+          {socket && roomCode && (
+            <div className="repro-mobile-box opp-box">
+              <span className="mobile-label">ADVERSAIRE</span>
+              <div className="mobile-val opp-score">{opponentScore}%</div>
+              <Board 
+                rows={rows}
+                cols={cols}
+                bricks={opponentBricks}
+                cellSize={10} // Grille miniature
+                gridClassName="reproduction-opponent-grid-style"
+              />
+            </div>
+          )}
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div 

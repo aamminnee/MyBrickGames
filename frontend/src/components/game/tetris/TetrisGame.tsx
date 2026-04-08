@@ -6,7 +6,8 @@ import { Socket } from 'socket.io-client';
 import { gridToBricks, shapeToBricks, createSeededRNG } from '../../../utils/gameUtils';
 
 import '../../CSS/ReproductionGame.css'; 
-import '../../CSS/GameOverTetris.css'
+import '../../CSS/GameOverTetris.css';
+import '../../CSS/TetrisGame.mobile.css';
 import backgroundImage from '../../../assets/background_8bit.jpg';
 
 interface Piece {
@@ -72,7 +73,8 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
 
   const [opponentBoard, setOpponentBoard] = useState<(string | null)[][] | null>(null);
   const [opponentScore, setOpponentScore] = useState(0);
-  const [opponentFinished, setOpponentFinished] = useState(false); // NOUVEAU
+  const [opponentFinished, setOpponentFinished] = useState(false);
+  const [isMobileLandscape, setIsMobileLandscape] = useState(false);
 
   const rows = initialLevelData?.rows || 8;
   const cols = initialLevelData?.cols || 8;
@@ -176,6 +178,17 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     newAvailablePieces[index] = { ...piece, shape: newShape };
     setAvailablePieces(newAvailablePieces);
   };
+
+  useEffect(() => {
+    const handleResize = () => {
+      // Si la hauteur est petite (<= 500px) et qu'on est plus large que haut
+      setIsMobileLandscape(window.innerHeight <= 500 && window.innerWidth > window.innerHeight);
+    };
+    
+    handleResize(); // Vérifie au chargement
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const isValidPlacement = (checkBoard: (string | null)[][], startR: number, startC: number, shape: number[][]) => {
     for (let r = 0; r < shape.length; r++) {
@@ -345,6 +358,119 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
 
   const isValidHover = dragOverPos && draggedPiece && isValidPlacement(board, adjustedR, adjustedC, draggedPiece.shape);
   const previewBricksForBoard = isValidHover ? shapeToBricks(draggedPiece.shape, draggedPiece.color) : null;
+
+  // ====================================================================
+  // 📱 AFFICHAGE SPÉCIAL MOBILE PAYSAGE (Complet mais compact)
+  // ====================================================================
+  if (isMobileLandscape) {
+    return (
+      <div className="tetris-mobile-wrapper" style={{ backgroundImage: `url(${backgroundImage})` }}>
+        
+        {/* ⬅️ GAUCHE : Score, Pièce et Barème */}
+        <div className="tetris-mobile-side tetris-mobile-left">
+          <div className="tetris-mobile-box">
+            <span className="mobile-label">SCORE</span>
+            <div className="mobile-val score-val">{score}</div>
+          </div>
+          
+          {!gameOver && (
+            <div className="tetris-mobile-box">
+              <span className="mobile-label">BRIQUE</span>
+              <div className="tetris-mobile-piece">
+                {availablePieces.map((piece, idx) => (
+                  <div key={idx} className="tetris-mobile-piece-wrapper">
+                    <DraggableBrick 
+                      disabled={!piece}
+                      rows={piece ? piece.shape.length : 1}
+                      cols={piece ? piece.shape[0].length : 1}
+                      bricks={piece ? shapeToBricks(piece.shape, piece.color) : []}
+                      cellSize={12} // Très petite brique
+                      isDragging={isDragging && draggingIndex === idx}
+                      onDragStart={(e: React.DragEvent) => handleDragStart(e, idx)}
+                      onDragEnd={handleDragEnd}
+                      onClick={(e: React.MouseEvent) => handleRotate(idx, e)}
+                      onMouseDown={() => setDragOffset({ r: 0, c: 0 })}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {!gameOver && (
+            <div className="tetris-mobile-box mobile-rules">
+              <span className="mobile-label">RÈGLES</span>
+              <ul>
+                {Object.entries(colorConfig).map(([color, config]) => (
+                  <li key={color}>
+                    <span className="rule-color" style={{ backgroundColor: color }}></span>
+                    {config.points}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        {/* ⬇️ CENTRE : Grille de jeu */}
+        <div className="tetris-mobile-center">
+          {!gameOver ? (
+            <div className="tetris-mobile-board-wrapper">
+              <Board 
+                rows={rows}
+                cols={cols}
+                bricks={gridToBricks(board)}
+                onCellDrop={handleCellDrop}
+                onCellHover={handleCellHover}
+                onMouseLeave={() => setDragOverPos(null)}
+                previewBricks={previewBricksForBoard}
+                hoverPos={dragOverPos ? { r: adjustedR, c: adjustedC } : null}
+                cellSize={20} // Grille ajustée
+              />
+            </div>
+          ) : (
+            <div className="tetris-gameover" style={{ padding: '10px', transform: 'scale(0.85)' }}>
+              <h2 className="tetris-gameover-title">FIN !</h2>
+              <p>Score: <strong>{score}</strong></p>
+              <button 
+                className="btn-lego btn-blue" 
+                onClick={() => {
+                  if (roomCode) socket?.emit('return_to_lobby', roomCode);
+                  else window.location.reload();
+                }}
+              >
+                RETOUR
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* ➡️ DROITE : Timer et Adversaire */}
+        <div className="tetris-mobile-side tetris-mobile-right">
+          {!gameOver && (
+            <div className="tetris-mobile-box timer-box">
+              <Timer timeLimit={15} onTimeout={handleTimeout} resetKey={turnIndex} />
+            </div>
+          )}
+
+          {socket && roomCode && (
+            <div className="tetris-mobile-box opp-box">
+              <span className="mobile-label">ADVERSAIRE</span>
+              <div className="mobile-val opp-score">{opponentScore}</div>
+              <Board 
+                rows={rows}
+                cols={cols}
+                bricks={gridToBricks(opponentBoard || Array.from({ length: rows }, () => Array(cols).fill(null)))}
+                cellSize={8} // Grille miniature
+                gridClassName="reproduction-opponent-grid-style"
+              />
+            </div>
+          )}
+        </div>
+
+      </div>
+    );
+  }
 
   return (
     <div 

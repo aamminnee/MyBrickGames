@@ -242,3 +242,261 @@
   cursor: not-allowed;
   opacity: 0.5;
 }
+
+/* ============================================================
+   RESPONSIVE — TABLETTE (≤ 900px)
+   ============================================================ */
+@media (max-width: 900px) {
+
+  .lobby-container {
+    padding: 25px 20px;
+    gap: 25px;
+    height: auto;
+    min-height: calc(100vh - 100px);
+  }
+
+  .lobby-card {
+    height: auto;
+    min-height: unset;
+    padding: 30px 25px;
+  }
+
+  .chat-wrapper {
+    height: 450px;
+    min-width: unset;
+    max-height: unset;
+  }
+
+  .app-chat-wrapper {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .lobby-code-text {
+    font-size: 2.2rem;
+    letter-spacing: 10px;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — MOBILE (≤ 650px)
+   ============================================================ */
+@media (max-width: 650px) {
+
+  /* Empile lobby-card + chat verticalement */
+  .lobby-container {
+    flex-direction: column;
+    padding: 15px 12px;
+    gap: 20px;
+    height: auto;
+    width: 100vw;
+  }
+
+  .lobby-card {
+    height: auto;
+    min-height: unset;
+    padding: 20px 16px;
+    flex: unset;
+    width: 100%;
+  }
+
+  /* Le chat prend une hauteur fixe raisonnable sous la carte */
+  .chat-wrapper {
+    flex: unset;
+    width: 100%;
+    height: 380px;
+    max-height: 380px;
+  }
+
+  .app-chat-wrapper {
+    flex: unset;
+    min-width: unset;
+    width: 100%;
+    height: 380px;
+  }
+
+  /* Titre */
+  .lobby-card h2 {
+    font-size: 1rem;
+    margin-bottom: 20px;
+  }
+
+  /* Code de partie */
+  .lobby-code-box {
+    padding: 14px;
+    margin-bottom: 20px;
+  }
+
+  .lobby-code-text {
+    font-size: 1.8rem;
+    letter-spacing: 8px;
+  }
+
+  .lobby-code-title {
+    font-size: 0.52rem;
+  }
+
+  /* Zone VS : empile les joueurs verticalement */
+  .lobby-vs-zone {
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 25px;
+  }
+
+  .vs-divider {
+    font-size: 1.2rem;
+    transform: rotate(90deg); /* La flèche passe en vertical */
+  }
+
+  .player-box {
+    width: 100%;
+    padding: 14px;
+  }
+
+  /* Config : label au-dessus du select */
+  .lobby-config-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    max-width: 100%;
+  }
+
+  .lobby-config-row .arcade-select-container {
+    width: 100%;
+    max-width: 100%;
+    flex: unset;
+  }
+
+  .lobby-config-label {
+    font-size: 0.65rem;
+  }
+
+  /* Bouton Start */
+  .btn-start-game {
+    font-size: 0.8rem;
+    padding: 16px 30px;
+    width: 100%;
+    margin-top: 20px;
+  }
+
+  .lobby-status-ready,
+  .lobby-status-waiting {
+    font-size: 0.6rem;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — PETIT MOBILE (≤ 400px)
+   ============================================================ */
+@media (max-width: 400px) {
+
+  .lobby-container {
+    padding: 10px 8px;
+    gap: 14px;
+  }
+
+  .lobby-card {
+    padding: 16px 12px;
+  }
+
+  .lobby-card h2 {
+    font-size: 0.82rem;
+  }
+
+  .lobby-code-text {
+    font-size: 1.4rem;
+    letter-spacing: 6px;
+  }
+
+  .chat-wrapper,
+  .app-chat-wrapper {
+    height: 320px;
+    max-height: 320px;
+  }
+}
+
+
+/* ============================================================
+   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
+   ============================================================ */
+@media (max-height: 500px) and (orientation: landscape) {
+
+  /* En paysage on garde le layout horizontal mais on compresse */
+  .lobby-container {
+    flex-direction: row;
+    align-items: stretch;
+    padding: 10px 14px;
+    gap: 14px;
+    height: calc(100vh - 70px);
+    margin-top: 5px;
+  }
+
+  .lobby-card {
+    flex: 1.4;
+    height: 100%;
+    padding: 14px 16px;
+    overflow-y: auto;
+  }
+
+  .chat-wrapper {
+    flex: 1;
+    height: 100%;
+    max-height: unset;
+  }
+
+  .app-chat-wrapper {
+    flex: 1;
+    height: 100%;
+    min-width: unset;
+  }
+
+  .lobby-card h2 {
+    font-size: 0.8rem;
+    margin-bottom: 12px;
+  }
+
+  .lobby-code-box {
+    padding: 10px;
+    margin-bottom: 14px;
+  }
+
+  .lobby-code-text {
+    font-size: 1.4rem;
+    letter-spacing: 6px;
+  }
+
+  .lobby-vs-zone {
+    margin-bottom: 16px;
+    gap: 10px;
+  }
+
+  .player-box {
+    padding: 10px;
+  }
+
+  .vs-divider {
+    font-size: 1.2rem;
+  }
+
+  .lobby-config-zone {
+    gap: 10px;
+    padding-top: 14px;
+  }
+
+  .lobby-config-row {
+    max-width: 100%;
+    gap: 10px;
+  }
+
+  .lobby-config-label {
+    font-size: 0.6rem;
+  }
+
+  .btn-start-game {
+    font-size: 0.75rem;
+    padding: 12px 24px;
+    margin-top: 10px;
+  }
+}

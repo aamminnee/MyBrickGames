@@ -71,3 +71,28 @@
   0%, 100% { opacity: 0.35; }
   50%       { opacity: 0.5;  }
 }
+
+/* ============================================================
+   RESPONSIVE — BOARD
+   Le board utilise des CSS variables (--cell-size) injectées
+   depuis le JS. Ces règles servent de filet de sécurité si
+   aucune variable n'est définie, et ajustent l'ombre/bordure.
+   ============================================================ */
+
+@media (max-width: 600px) {
+  .board-container {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.03),
+      0 0 20px rgba(0,0,0,0.9) inset,
+      0 6px 20px rgba(0,0,0,0.8);
+  }
+}
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .board-container {
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,0.03),
+      0 0 15px rgba(0,0,0,0.9) inset,
+      0 4px 14px rgba(0,0,0,0.8);
+  }
+}
