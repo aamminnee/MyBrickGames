@@ -1,10 +1,5 @@
-/* ═══════════════════════════════════════════════════
-   GAME OVER TETRIS — ARCADE NEON THEME
-   ═══════════════════════════════════════════════════ */
-
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap');
 
-/* ── Conteneur principal ── */
 .tetris-gameover {
   position: relative;
   background: linear-gradient(160deg, #0a0a1a 0%, #0d0d22 50%, #0a0a1a 100%);
@@ -13,8 +8,6 @@
   padding: 40px 36px;
   margin: 12px 0;
   overflow: hidden;
-
-  /* Bordure néon cyan animée */
   box-shadow:
     0 0 0 2px #00f5ff,
     0 0 20px rgba(0, 245, 255, 0.35),
@@ -41,7 +34,6 @@
   }
 }
 
-/* Lignes de scan CRT */
 .tetris-gameover::before {
   content: '';
   position: absolute;
@@ -57,7 +49,6 @@
   z-index: 0;
 }
 
-/* Coin décoratif — style terminal arcade */
 .tetris-gameover::after {
   content: '';
   position: absolute;
@@ -75,7 +66,6 @@
   z-index: 1;
 }
 
-/* ── Titre GAME OVER ── */
 .tetris-gameover-title {
   font-family: 'Press Start 2P', monospace;
   font-size: 1.3rem;
@@ -85,12 +75,10 @@
   margin: 0 0 24px 0;
   text-align: center;
   line-height: 1.6;
-
   text-shadow:
     0 0 10px #ff00aa,
     0 0 30px rgba(255, 0, 170, 0.6),
     0 0 60px rgba(255, 0, 170, 0.3);
-
   animation: glitch 4s infinite;
 }
 
@@ -124,7 +112,6 @@
   }
 }
 
-/* Titre variante jaune (état d'attente adversaire) */
 .tetris-gameover-title[style*="neon-yellow"],
 .tetris-gameover h2[style*="neon-yellow"] {
   color: #ffe600;
@@ -139,7 +126,6 @@
   50% { opacity: 0.6; }
 }
 
-/* ── Textes ── */
 .tetris-gameover-text {
   font-family: 'Orbitron', sans-serif;
   font-size: 0.82rem;
@@ -158,7 +144,6 @@
   text-shadow: 0 0 12px #00f5ff, 0 0 30px rgba(0, 245, 255, 0.4);
 }
 
-/* ── Résultat multijoueur ── */
 .multiplayer-result {
   margin-top: 20px;
   padding: 14px 20px;
@@ -182,7 +167,6 @@
   margin: 0;
 }
 
-/* ── Bouton ── */
 .tetris-gameover-btn {
   display: block;
   margin: 28px auto 0;
@@ -198,12 +182,10 @@
   cursor: pointer;
   position: relative;
   overflow: hidden;
-
   box-shadow:
     0 0 0 2px #00f5ff,
     0 0 20px rgba(0, 245, 255, 0.5),
     4px 4px 0 rgba(0, 100, 110, 0.8);
-
   transition: transform 0.1s ease, box-shadow 0.1s ease;
 }
 
@@ -236,7 +218,6 @@
     2px 2px 0 rgba(0, 100, 110, 0.8);
 }
 
-/* ── Séparateur néon ── */
 .tetris-gameover hr {
   border: none;
   height: 1px;

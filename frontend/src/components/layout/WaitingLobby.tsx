@@ -22,27 +22,19 @@ const WaitingLobby = ({
   difficulty, setDifficulty, onStartGame, socket 
 }: WaitingLobbyProps) => {
 
-  // Récupération de son propre pseudo
   const myPseudo = localStorage.getItem('player_username') || (isHost ? 'HÔTE' : 'INVITÉ');
   
-  // Remplacement de la constante par un état modifiable
   const [opponentPseudo, setOpponentPseudo] = useState('???');
 
-  // Émission de son propre pseudo quand l'invité arrive
   useEffect(() => {
-    // Dès que les deux joueurs sont dans le salon (ou si on est l'invité qui rejoint)
     if (guestArrived || !isHost) {
       socket.emit('send_pseudo', { roomCode, pseudo: myPseudo });
     }
   }, [guestArrived, isHost, myPseudo, roomCode, socket]);
 
-  // Réception du pseudo de l'adversaire
   useEffect(() => {
     const handleReceivePseudo = (data: { pseudo: string }) => {
       setOpponentPseudo(data.pseudo);
-      
-      // Si je suis l'hôte et que je viens de recevoir le pseudo de l'invité,
-      // je lui renvoie le mien en réponse pour être certain qu'il l'ait.
       if (isHost) {
         socket.emit('send_pseudo', { roomCode, pseudo: myPseudo });
       }
@@ -54,7 +46,6 @@ const WaitingLobby = ({
     };
   }, [isHost, myPseudo, roomCode, socket]);
 
-  // Si le joueur adverse quitte (guestArrived devient false), on réinitialise son nom
   useEffect(() => {
     if (!guestArrived) {
       setOpponentPseudo('???');
@@ -67,7 +58,6 @@ const WaitingLobby = ({
       style={{ backgroundImage: `url(${backgroundImage})` }}
     >
       <div className="lobby-container">
-        {/* GAUCHE : CONFIGURATION */}
         <div className="lobby-card">
           <h2>— MODE VERSUS —</h2>
           
@@ -79,7 +69,6 @@ const WaitingLobby = ({
           <div className="lobby-vs-zone">
             <div className={`player-box ${isHost ? 'active' : ''}`}>
               <div style={{ color: 'var(--neon-red)', marginBottom: '10px' }}>P1</div>
-              {/* Affichage du pseudo utilisateur */}
               <div style={{ fontSize: '0.7rem' }}>{isHost ? myPseudo : opponentPseudo}</div>
               <div className="lobby-status-ready">PRÊT</div>
             </div>
@@ -97,7 +86,6 @@ const WaitingLobby = ({
 
           {isHost ? (
             <div className="lobby-config-zone">
-              {/* LIGNE 1 : JEU */}
               <div className="lobby-config-row">
                 <span className="lobby-config-label">SÉLECTION DU JEU :</span>
                 <ArcadeSelect 
@@ -110,7 +98,6 @@ const WaitingLobby = ({
                 />
               </div>
 
-              {/* LIGNE 2 : DIFFICULTÉ (seulement si Reproduction est choisi) */}
               {selectedGame === 'reproduction' && (
                 <div className="lobby-config-row">
                   <span className="lobby-config-label">CHOIX DU NIVEAU :</span>
@@ -139,7 +126,6 @@ const WaitingLobby = ({
           )}
         </div>
 
-        {/* DROITE : TON CHATBOX.TSX PERSONNALISÉ */}
         <div className="app-chat-wrapper">
           <ChatBox 
             socket={socket} 

@@ -6,7 +6,7 @@ interface ChatBoxProps {
   socket: Socket;
   roomCode: string;
   userName: string;
-  variant?: 'embedded' | 'floating'; // <-- Ajout de l'option flottante
+  variant?: 'embedded' | 'floating';
 }
 
 interface ChatMessage {
@@ -20,7 +20,6 @@ const ChatBox = ({ socket, roomCode, userName, variant = 'embedded' }: ChatBoxPr
   const [input, setInput] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   
-  // États pour gérer l'ouverture du chat et les notifications
   const [isOpen, setIsOpen] = useState(variant === 'embedded');
   const [unreadCount, setUnreadCount] = useState(0);
   
@@ -30,7 +29,6 @@ const ChatBox = ({ socket, roomCode, userName, variant = 'embedded' }: ChatBoxPr
     const handleReceiveMessage = (msg: ChatMessage) => {
       setMessages((prev) => [...prev, msg]);
       
-      // Si on reçoit un message et que le chat flottant est fermé, on augmente le compteur
       if (variant === 'floating' && !isOpen) {
         setUnreadCount((prev) => prev + 1);
       }
@@ -39,7 +37,6 @@ const ChatBox = ({ socket, roomCode, userName, variant = 'embedded' }: ChatBoxPr
     return () => { socket.off('receive_message', handleReceiveMessage); };
   }, [socket, variant, isOpen]);
 
-  // Scroller en bas quand on ouvre le chat ou qu'un message arrive
   useEffect(() => {
     if (isOpen && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -54,12 +51,12 @@ const ChatBox = ({ socket, roomCode, userName, variant = 'embedded' }: ChatBoxPr
 
   const handleOpen = () => {
     setIsOpen(true);
-    setUnreadCount(0); // On remet les notifications à zéro
+    setUnreadCount(0);
   };
 
   return (
     <>
-      {/* BOUTON FLOTTANT (s'affiche uniquement si variant='floating' et que le chat est fermé) */}
+      {/* BOUTON FLOTTANT */}
       {variant === 'floating' && !isOpen && (
         <button className="chat-floating-btn" onClick={handleOpen}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">

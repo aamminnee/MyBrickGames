@@ -1,4 +1,3 @@
-/* styles pour le composant scorelegend */
 .tetris-legend {
   margin-top: 25px;
   padding: 15px;
@@ -34,10 +33,6 @@
   margin-right: 8px;
   border: 1px solid #000;
 }
-
-/* ============================================================
-   RESPONSIVE — SCORE LEGEND
-   ============================================================ */
 
 @media (max-width: 600px) {
 

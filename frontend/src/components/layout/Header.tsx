@@ -1,8 +1,6 @@
-// header component for navigation
 import React from 'react';
 import '../CSS/Header.css'
 
-// properties interface
 interface HeaderProps {
   onReturnHome: (e: React.MouseEvent) => void;
 }

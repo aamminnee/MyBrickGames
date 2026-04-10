@@ -1,6 +1,3 @@
-/* ============================================
-   GAME OVER REPRODUCTION — ARCADE STYLE
-   ============================================ */
 .reproduction-gameover-panel {
   background: linear-gradient(135deg, rgba(57,255,20,0.05) 0%, rgba(0,0,0,0) 70%);
   border: 1px solid rgba(57, 255, 20, 0.3);
@@ -21,7 +18,6 @@
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Scan-line overlay effect */
 .reproduction-gameover-panel::before {
   content: '';
   position: absolute;
@@ -60,7 +56,7 @@
   color: rgba(232,232,240,0.85);
   letter-spacing: 1px;
   margin: 6px 0;
-  position: relative; /* Above scanlines */
+  position: relative;
   z-index: 1;
 }
 
@@ -70,7 +66,6 @@
   z-index: 1;
 }
 
-/* ── Button style for the restart/continue button ── */
 .reproduction-gameover-btn button,
 .reproduction-gameover-btn a {
   font-family: var(--font-heading);
@@ -96,11 +91,6 @@
   box-shadow: 0 0 28px rgba(57,255,20,0.25);
 }
 
-/* ============================================================
-   RESPONSIVE — GAME OVER REPRODUCTION
-   ============================================================ */
-
-/* ---- Mobile (≤ 600px) ---- */
 @media (max-width: 600px) {
 
   .reproduction-gameover-panel {
@@ -131,8 +121,6 @@
   }
 }
 
-
-/* ---- Petit mobile (≤ 400px) ---- */
 @media (max-width: 400px) {
 
   .reproduction-gameover-panel {
@@ -149,8 +137,6 @@
   }
 }
 
-
-/* ---- Paysage téléphone ---- */
 @media (max-height: 500px) and (orientation: landscape) {
 
   .reproduction-gameover-panel {

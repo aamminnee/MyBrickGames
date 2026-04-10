@@ -1,32 +1,21 @@
-/* ============================================
-   REPRODUCTION GAME — ARCADE LAYOUT
-   ============================================ */
-
-/* ── Main layout ──────────────────────────── */
 .repro-layout-container {
   position: relative; 
   z-index: 1;         
   display: flex;
   justify-content: space-between;
-  
-  /* C'est ICI que la magie opère pour centrer verticalement ! */
   align-items: center; 
-  
   gap: 30px;
   max-width: 95vw;
   margin: 0 auto;
   padding: 20px;
   width: 100%;
-  
-  /* Permet au conteneur de s'étirer et de pousser la grille bien au centre */
   flex-grow: 1; 
 }
 
 .repro-page-wrapper {
   width: 100vw;
-  /* On soustrait la hauteur approximative du Header (~65px) pour éviter le décalage noir */
   min-height: calc(100vh - 65px); 
-  display: flex; /* Permet de manipuler la hauteur du contenu interne */
+  display: flex;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -50,7 +39,7 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
-  width: 380px; /* Élargi pour prendre plus de place à gauche et à droite */
+  width: 380px;
   flex-shrink: 0;
 }
 
@@ -59,10 +48,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 800px; /* Élargi pour laisser respirer la grande grille */
+  max-width: 800px;
 }
 
-/* ── Arcade panel container ───────────────── */
 .arcade-panel {
   background: #000;
   border: 1px solid;
@@ -74,7 +62,6 @@
   transition: box-shadow 0.3s ease;
 }
 
-/* Corner accent marks */
 .arcade-panel::before,
 .arcade-panel::after {
   content: '';
@@ -90,7 +77,6 @@
 .arcade-panel::before { top: -1px; left: -1px; border-width: 2px 0 0 2px; border-radius: 10px 0 0 0; }
 .arcade-panel::after  { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; border-radius: 0 0 10px 0; }
 
-/* Color variants */
 .panel-magenta {
   border-color: var(--neon-magenta);
   box-shadow: 0 0 20px rgba(255,0,255,0.1), 0 8px 32px rgba(0,0,0,0.7);
@@ -113,7 +99,6 @@
   box-shadow: 0 0 30px rgba(255,234,0,0.2), 0 8px 32px rgba(0,0,0,0.7);
 }
 
-/* ── Panel header bar ─────────────────────── */
 .arcade-panel-header {
   padding: 10px 16px;
   text-align: center;
@@ -129,7 +114,6 @@
   gap: 8px;
 }
 
-/* Blinking dot in header */
 .arcade-panel-header::before {
   content: '◆';
   font-size: 0.5rem;
@@ -156,7 +140,6 @@
   text-shadow: 0 0 8px var(--neon-yellow);
 }
 
-/* ── Panel content ────────────────────────── */
 .arcade-panel-content {
   padding: 20px;
   background: rgba(5, 5, 15, 0.97);
@@ -167,10 +150,9 @@
   flex: 1;
 }
 
-/* ── Dark grid override ───────────────────── */
 .arcade-panel-content table,
 .arcade-panel-content .board-container {
-  background-color: #1a1a2a !important; /* Bleu nuit profond */
+  background-color: #1a1a2a !important;
   border: 1px solid #2d2d44 !important;
   box-shadow:
     0 0 30px rgba(0,0,0,0.5) inset,
@@ -179,11 +161,10 @@
 
 .arcade-panel-content td,
 .arcade-panel-content .board-cell-bg {
-  background-color: #262638 !important; /* Gris-bleu clair pour voir le NOIR */
+  background-color: #262638 !important;
   border: 1px solid #33334a !important;
 }
 
-/* Colored/filled cells — glowing bricks */
 .arcade-panel-content td[style*="background-color"]:not([style*="transparent"]),
 .arcade-panel-content .board-cell-bg[style*="background-color"]:not([style*="transparent"]),
 .arcade-panel-content .board-brick-placed {
@@ -195,7 +176,6 @@
   filter: brightness(1.25) saturate(1.2);
 }
 
-/* ── Responsive ───────────────────────────── */
 @media (max-width: 1050px) {
   .repro-layout-container {
     flex-direction: column;
@@ -218,10 +198,6 @@
   .arcade-panel-content { padding: 14px; }
 }
 
-
-/* ═══════════════════════════════════════════════
-   GAME OVER — PANEL WRAPPER
-   ═══════════════════════════════════════════════ */
 .reproduction-gameover-panel {
   display: flex;
   flex-direction: column;
@@ -238,10 +214,6 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-
-/* ═══════════════════════════════════════════════
-   BANNER VICTOIRE / DÉFAITE / ÉGALITÉ
-   ═══════════════════════════════════════════════ */
 .go-result-banner {
   position: relative;
   width: 100%;
@@ -261,7 +233,6 @@
   to   { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Couleurs par résultat */
 .go-result-win {
   border-color: var(--neon-green, #39ff14);
   background: linear-gradient(135deg, rgba(57,255,20,0.07) 0%, rgba(0,0,0,0) 60%);
@@ -278,7 +249,6 @@
   box-shadow: 0 0 28px rgba(255,234,0,0.15), inset 0 0 20px rgba(255,234,0,0.04);
 }
 
-/* Effet scanline sur le banner */
 .go-result-scanline {
   position: absolute;
   inset: 0;
@@ -293,7 +263,6 @@
   z-index: 0;
 }
 
-/* Halo de fond animé */
 .go-result-glow {
   position: absolute;
   top: 50%; left: 50%;
@@ -312,7 +281,6 @@
   50%       { opacity: 1;   transform: translate(-50%,-50%) scale(1.2); }
 }
 
-/* Icône */
 .go-result-icon {
   font-size: 2.4rem;
   position: relative;
@@ -326,7 +294,6 @@
   to   { transform: scale(1); }
 }
 
-/* Textes du banner */
 .go-result-texts {
   position: relative;
   z-index: 1;
@@ -354,10 +321,6 @@
   text-transform: uppercase;
 }
 
-
-/* ═══════════════════════════════════════════════
-   CARTE D'ATTENTE ADVERSAIRE
-   ═══════════════════════════════════════════════ */
 .go-waiting-card {
   display: flex;
   flex-direction: column;
@@ -373,7 +336,6 @@
   animation: go-fadein 0.5s ease both;
 }
 
-/* Dots clignotants dans le header */
 .go-waiting-header {
   display: flex;
   gap: 6px;
@@ -393,7 +355,6 @@
   50%       { opacity: 0.1; }
 }
 
-/* Icône centrale */
 .go-waiting-icon {
   font-size: 2.6rem;
   animation: go-waiting-spin 2s linear infinite;
@@ -407,7 +368,6 @@
   100% { transform: rotate(0deg)   scale(1);    }
 }
 
-/* Titre */
 .go-waiting-title {
   font-family: var(--font-heading);
   font-size: 1.5rem;
@@ -417,7 +377,6 @@
   margin: 0;
 }
 
-/* Sous-titre */
 .go-waiting-sub {
   font-family: var(--font-heading);
   font-size: 0.58rem;
@@ -428,7 +387,6 @@
   text-align: center;
 }
 
-/* Score box */
 .go-waiting-score-box {
   display: flex;
   flex-direction: column;
@@ -457,7 +415,6 @@
   line-height: 1;
 }
 
-/* Barre de progression infinie */
 .go-waiting-bar {
   width: 100%;
   height: 3px;

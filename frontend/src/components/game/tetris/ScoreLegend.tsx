@@ -1,7 +1,5 @@
-// score legend component
 import '../../CSS/ScoreLegend.css'
 
-// interface for score config
 interface ScoreLegendProps {
   colorConfig: Record<string, { weight: number; points: number; name: string }>;
 }

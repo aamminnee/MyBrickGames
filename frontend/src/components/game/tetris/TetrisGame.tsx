@@ -358,15 +358,11 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
 
   const isValidHover = dragOverPos && draggedPiece && isValidPlacement(board, adjustedR, adjustedC, draggedPiece.shape);
   const previewBricksForBoard = isValidHover ? shapeToBricks(draggedPiece.shape, draggedPiece.color) : null;
-
-  // ====================================================================
-  // 📱 AFFICHAGE SPÉCIAL MOBILE PAYSAGE (Complet mais compact)
-  // ====================================================================
+  
   if (isMobileLandscape) {
     return (
       <div className="tetris-mobile-wrapper" style={{ backgroundImage: `url(${backgroundImage})` }}>
         
-        {/* ⬅️ GAUCHE : Score, Pièce et Barème */}
         <div className="tetris-mobile-side tetris-mobile-left">
           <div className="tetris-mobile-box">
             <span className="mobile-label">SCORE</span>
@@ -412,7 +408,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
           )}
         </div>
 
-        {/* ⬇️ CENTRE : Grille de jeu */}
         <div className="tetris-mobile-center">
           {!gameOver ? (
             <div className="tetris-mobile-board-wrapper">
@@ -425,7 +420,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
                 onMouseLeave={() => setDragOverPos(null)}
                 previewBricks={previewBricksForBoard}
                 hoverPos={dragOverPos ? { r: adjustedR, c: adjustedC } : null}
-                cellSize={20} // Grille ajustée
+                cellSize={20}
               />
             </div>
           ) : (
@@ -445,7 +440,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
           )}
         </div>
 
-        {/* ➡️ DROITE : Timer et Adversaire */}
         <div className="tetris-mobile-side tetris-mobile-right">
           {!gameOver && (
             <div className="tetris-mobile-box timer-box">
@@ -461,7 +455,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
                 rows={rows}
                 cols={cols}
                 bricks={gridToBricks(opponentBoard || Array.from({ length: rows }, () => Array(cols).fill(null)))}
-                cellSize={8} // Grille miniature
+                cellSize={8}
                 gridClassName="reproduction-opponent-grid-style"
               />
             </div>
@@ -485,7 +479,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
     >
       <div className="repro-layout-container">
         
-        {/* ⬅️ COLONNE DE GAUCHE : Score et Pioche */}
         <div className="repro-side-panel">
           
           <div className="arcade-panel panel-cyan">
@@ -509,7 +502,7 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
                         rows={piece ? piece.shape.length : 1}
                         cols={piece ? piece.shape[0].length : 1}
                         bricks={piece ? shapeToBricks(piece.shape, piece.color) : []}
-                        cellSize={40} // Agrandie pour correspondre à Reproduction
+                        cellSize={40}
                         isDragging={isDragging && draggingIndex === idx}
                         onDragStart={(e: React.DragEvent) => handleDragStart(e, idx)}
                         onDragEnd={handleDragEnd}
@@ -528,7 +521,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
 
         </div>
 
-        {/* ⬇️ COLONNE CENTRALE : Grille du joueur */}
         <div className="repro-center-panel">
           <div className="arcade-panel panel-cyan" style={{ width: '100%' }}>
             <div className="arcade-panel-header">CASSE-BRIQUES (BLAST) - GRILLE {rows}x{cols}</div>
@@ -586,7 +578,6 @@ const TetrisGame = ({ initialLevelData, socket, roomCode }: TetrisProps) => {
           </div>
         </div>
 
-        {/* ➡️ COLONNE DE DROITE : Chrono, Légende et Adversaire */}
         <div className="repro-side-panel">
           
           {!gameOver && (

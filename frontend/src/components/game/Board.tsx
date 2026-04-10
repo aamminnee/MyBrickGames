@@ -1,8 +1,6 @@
-// board component using css variables instead of inline styles
 import React, { useMemo } from 'react';
 import '../CSS/Board.css'; 
 
-// exported brick interface
 export interface BrickObj {
   x: number;
   y: number;
@@ -11,7 +9,6 @@ export interface BrickObj {
   color: string;
 }
 
-// board properties
 interface BoardProps {
   rows: number;
   cols: number;
@@ -25,7 +22,6 @@ interface BoardProps {
   gridClassName?: string;
 }
 
-// main board component
 const Board = ({ 
   rows, 
   cols, 
@@ -38,10 +34,8 @@ const Board = ({
   cellSize = 25,
   gridClassName
 }: BoardProps) => {
-  // centralized svg pattern for lego studs
   const tenonSvg = `url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30"><circle cx="15" cy="15" r="10" fill="rgba(255,255,255,0.15)" stroke="rgba(0,0,0,0.3)" stroke-width="2"/><path d="M 8 15 A 7 7 0 0 1 22 15" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"/></svg>')`;
 
-  // memoized grid for visually merging bricks
   const gridMap = useMemo(() => {
     const map = Array.from({ length: rows }, () => Array(cols).fill(null));
     bricks.forEach(b => {
@@ -56,7 +50,6 @@ const Board = ({
     return map;
   }, [rows, cols, bricks]);
 
-  // memoized grid for piece preview
   const previewMap = useMemo(() => {
     const map = Array.from({ length: rows }, () => Array(cols).fill(null));
     if (previewBricks && hoverPos) {
@@ -85,7 +78,6 @@ const Board = ({
         '--cell-size': `${cellSize}px`
       } as React.CSSProperties}
     >
-      {/* background grid cells */}
       {Array.from({ length: rows }).map((_, r) =>
         Array.from({ length: cols }).map((_, c) => (
           <div
@@ -107,7 +99,6 @@ const Board = ({
         ))
       )}
 
-      {/* placed bricks rendering */}
       {Array.from({ length: rows }).map((_, r) =>
         Array.from({ length: cols }).map((_, c) => {
           const color = gridMap[r][c];
@@ -139,7 +130,6 @@ const Board = ({
         })
       )}
 
-      {/* preview layer rendering */}
       {Array.from({ length: rows }).map((_, r) =>
         Array.from({ length: cols }).map((_, c) => {
           const color = previewMap[r][c];

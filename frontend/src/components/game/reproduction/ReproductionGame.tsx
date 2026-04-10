@@ -331,14 +331,10 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
   const currentPreview = currentBrick ? [{ x: 0, y: 0, w: currentBrick.w, h: currentBrick.h, color: currentBrick.color }] : undefined;
   const difficulty = levelPath?.split('/')[1] || 'normal';
 
-  // ====================================================================
-  // 📱 AFFICHAGE SPÉCIAL MOBILE PAYSAGE (Complet mais compact)
-  // ====================================================================
   if (isMobileLandscape) {
     return (
       <div className="repro-mobile-wrapper" style={{ backgroundImage: `url(${backgroundImage})` }}>
         
-        {/* ⬅️ GAUCHE : Modèle Cible et Brique Active */}
         <div className="repro-mobile-side repro-mobile-left">
           <div className="repro-mobile-box target-box">
             <span className="mobile-label">MODÈLE CIBLE</span>
@@ -365,7 +361,6 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
           )}
         </div>
 
-        {/* ⬇️ CENTRE : Grille du joueur */}
         <div className="repro-mobile-center">
           {!gameOver ? (
             <div className="repro-mobile-board-wrapper">
@@ -422,7 +417,6 @@ const ReproductionGame = ({ roomCode, socket, initialDifficulty, isHost }: Repro
           )}
         </div>
 
-        {/* ➡️ DROITE : Timer, Actions et Adversaire */}
         <div className="repro-mobile-side repro-mobile-right">
           {!gameOver && (
             <div className="repro-mobile-box timer-box">

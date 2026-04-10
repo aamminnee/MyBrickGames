@@ -1,6 +1,3 @@
-/* ============================================
-   ACTIVE BRICK — ARCADE STYLE
-   ============================================ */
 .reproduction-active-brick {
   margin: 12px 0;
   padding: 14px 18px;
@@ -33,8 +30,8 @@
 
 .reproduction-active-box {
   padding: 15px;
-  background-color: #1a1a2a; /* Assorti au fond de la grille */
-  border: 1px solid #2d2d44; /* Bordure plus claire */
+  background-color: #1a1a2a;
+  border: 1px solid #2d2d44; 
   border-radius: 6px;
   min-width: 150px;
   min-height: 150px;
@@ -47,7 +44,6 @@
   box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
 }
 
-/* ── Landscape mobile ── */
 @media (max-height: 500px) and (orientation: landscape) {
 
   .reproduction-active-brick {

@@ -4,57 +4,37 @@ import '../CSS/LoyaltyDashboard.css';
 import backgroundImage from '../../assets/retro.avif';
 
 const LoyaltyDashboard = () => {
-  // 1. L'ID DE FIDÉLITÉ (loyaltyId) : Généré automatiquement, non modifiable, sert pour l'e-commerce
   const [loyaltyId] = useState(() => {
     let id = localStorage.getItem('loyalty_id');
     if (!id) {
-      // Génère un ID aléatoire sécurisé de 16 caractères (ex: LY-4f8a2b9...)
       id = 'LY-' + Math.random().toString(36).substring(2, 10) + Math.random().toString(36).substring(2, 10);
       localStorage.setItem('loyalty_id', id);
     }
     return id;
   });
 
-  // 2. LE NOM D'UTILISATEUR (username) : Ce que le joueur voit et peut modifier
   const [username, setUsername] = useState(() => localStorage.getItem('player_username') || 'Nouveau Joueur');
-
-  // État pour afficher/cacher l'ID secret de fidélité
   const [showSecretId, setShowSecretId] = useState<boolean>(false);
-
-  // etat pour les donnees du backend
   const [points, setPoints] = useState<number>(0);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [history, setHistory] = useState<any[]>([]);
-
-  // etat pour les filtres dynamiques
   const [filterGame, setFilterGame] = useState<string>('all');
   const [filterMode, setFilterMode] = useState<string>('all');
-
-  // etat pour l'onglet de categorie des succes
   const [achievTab, setAchievTab] = useState<'tetris' | 'reproduction' | 'multi' | 'other'>('tetris');
-
   const [currentSlide, setCurrentSlide] = useState(0);
-
-  // Fonctions pour naviguer
   const nextSlide = () => setCurrentSlide(prev => Math.min(prev + 1, 2));
   const prevSlide = () => setCurrentSlide(prev => Math.max(prev - 1, 0));
-
-  // Mettre à jour le nom d'utilisateur dans le cache local
   const handleUsernameChange = (newName: string) => {
     setUsername(newName);
     localStorage.setItem('player_username', newName);
   };
 
-  // recuperer les donnees au montage
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // recuperer les points
         const pointsRes = await fetch(`http://localhost:3000/api/player/${loyaltyId}/points`, { cache: 'no-store' });
         const pointsData = await pointsRes.json();
         if (pointsData.points !== undefined) setPoints(pointsData.points);
 
-        // recuperer l'historique
         const historyRes = await fetch(`http://localhost:3000/api/player/${loyaltyId}/history`, { cache: 'no-store' });
         const historyData = await historyRes.json();
         if (Array.isArray(historyData)) setHistory(historyData);
@@ -66,7 +46,6 @@ const LoyaltyDashboard = () => {
     fetchData();
   }, [loyaltyId]);
 
-  // calculer l'historique filtre en fonction des filtres selectionnes
   const filteredHistory = useMemo(() => {
     return history.filter(game => {
       const matchGame = filterGame === 'all' || game.gameId === filterGame;
@@ -75,29 +54,20 @@ const LoyaltyDashboard = () => {
     });
   }, [history, filterGame, filterMode]);
 
-  // calculer les statistiques dynamiques basees sur l'historique filtre
   const stats = useMemo(() => {
     const total = filteredHistory.length;
     const wins = filteredHistory.filter(g => g.result === 'win').length;
     const losses = filteredHistory.filter(g => g.result === 'loss').length;
     const draws = filteredHistory.filter(g => g.result === 'draw').length;
-    
-    // le ratio de victoire est base uniquement sur les parties decisives (victoires + defaites)
     const decisiveGames = wins + losses;
     const winRatio = decisiveGames > 0 ? ((wins / decisiveGames) * 100).toFixed(1) : "0.0";
-    
-    // meilleur score dans la selection filtree
     const bestScore = total > 0 ? Math.max(...filteredHistory.map(g => g.score)) : 0;
 
     return { total, wins, losses, draws, winRatio, bestScore };
   }, [filteredHistory]);
 
-  // definitions et calculs des succes
   const achievementsList = useMemo(() => {
-    // fonctions utilitaires pour calculer la progression
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const countGames = (filterFn: (g: any) => boolean) => history.filter(filterFn).length;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const maxScore = (filterFn: (g: any) => boolean) => {
       const scores = history.filter(filterFn).map(g => g.score);
       return scores.length > 0 ? Math.max(...scores) : 0;
@@ -105,7 +75,6 @@ const LoyaltyDashboard = () => {
     const totalPointsEarned = history.reduce((sum, g) => sum + g.pointsEarned, 0);
 
     const list = [
-      // succes tetris (10)
       { id: 't1', cat: 'tetris', title: 'novice tetris', objective: 'jouer 1 partie', icon: '🧱', target: 1, current: countGames(g => g.gameId === 'tetris') },
       { id: 't2', cat: 'tetris', title: 'amateur tetris', objective: 'jouer 10 parties', icon: '🕹️', target: 10, current: countGames(g => g.gameId === 'tetris') },
       { id: 't3', cat: 'tetris', title: 'pro tetris', objective: 'jouer 50 parties', icon: '🔥', target: 50, current: countGames(g => g.gameId === 'tetris') },
@@ -117,7 +86,6 @@ const LoyaltyDashboard = () => {
       { id: 't9', cat: 'tetris', title: 'champion solo', objective: 'gagner 10 fois', icon: '🏆', target: 10, current: countGames(g => g.gameId === 'tetris' && g.mode === 'solo' && g.result === 'win') },
       { id: 't10', cat: 'tetris', title: 'vétéran tetris', objective: 'jouer 100 parties', icon: '👻', target: 100, current: countGames(g => g.gameId === 'tetris') },
 
-      // succes reproduction (10)
       { id: 'r1', cat: 'reproduction', title: 'apprenti bâtisseur', objective: 'jouer 1 partie', icon: '🖼️', target: 1, current: countGames(g => g.gameId === 'reproduction') },
       { id: 'r2', cat: 'reproduction', title: 'constructeur', objective: 'jouer 10 parties', icon: '🏗️', target: 10, current: countGames(g => g.gameId === 'reproduction') },
       { id: 'r3', cat: 'reproduction', title: 'architecte', objective: 'jouer 50 parties', icon: '🏛️', target: 50, current: countGames(g => g.gameId === 'reproduction') },
@@ -129,7 +97,6 @@ const LoyaltyDashboard = () => {
       { id: 'r9', cat: 'reproduction', title: 'champion repro', objective: 'gagner 10 fois', icon: '🥇', target: 10, current: countGames(g => g.gameId === 'reproduction' && g.mode === 'solo' && g.result === 'win') },
       { id: 'r10', cat: 'reproduction', title: 'bâtisseur fou', objective: 'jouer 100 parties', icon: '🤪', target: 100, current: countGames(g => g.gameId === 'reproduction') },
 
-      // succes multijoueur (10)
       { id: 'm1', cat: 'multi', title: 'sociable', objective: 'jouer 1 partie en multi', icon: '🤝', target: 1, current: countGames(g => g.mode === 'multi') },
       { id: 'm2', cat: 'multi', title: 'compétiteur', objective: 'jouer 10 parties multi', icon: '⚔️', target: 10, current: countGames(g => g.mode === 'multi') },
       { id: 'm3', cat: 'multi', title: 'gladiateur', objective: 'jouer 50 parties multi', icon: '🛡️', target: 50, current: countGames(g => g.mode === 'multi') },
@@ -141,7 +108,6 @@ const LoyaltyDashboard = () => {
       { id: 'm9', cat: 'multi', title: 'pacifiste', objective: 'faire 5 matchs nuls', icon: '☮️', target: 5, current: countGames(g => g.mode === 'multi' && g.result === 'draw') },
       { id: 'm10', cat: 'multi', title: 'roi de l\'arène', objective: 'jouer 100 parties en multi', icon: '👑', target: 100, current: countGames(g => g.mode === 'multi') },
 
-      // autres succes (10)
       { id: 'o1', cat: 'other', title: 'nouveau venu', objective: 'jouer 1 partie', icon: '👋', target: 1, current: history.length },
       { id: 'o2', cat: 'other', title: 'accro', objective: 'jouer 50 parties', icon: '👀', target: 50, current: history.length },
       { id: 'o3', cat: 'other', title: 'sans limite', objective: 'jouer 100 parties', icon: '🌌', target: 100, current: history.length },
@@ -154,19 +120,16 @@ const LoyaltyDashboard = () => {
       { id: 'o10', cat: 'other', title: 'légende vivante', objective: 'gagner 100 fois', icon: '🌟', target: 100, current: countGames(g => g.result === 'win') },
     ];
 
-    // plafonner la progression actuelle a la cible pour ne pas depasser 100%
     return list.map(item => ({
       ...item,
       current: Math.min(item.current, item.target)
     }));
   }, [history]);
 
-  // calculs pour la progression globale
   const totalAchievements = achievementsList.length;
   const totalCompleted = achievementsList.filter(a => a.current >= a.target).length;
   const globalPercentage = totalAchievements > 0 ? (totalCompleted / totalAchievements) * 100 : 0;
 
-  // filtrer les succes par onglet actif
   const activeAchievements = achievementsList.filter(a => a.cat === achievTab);
 
   return (
@@ -182,7 +145,6 @@ const LoyaltyDashboard = () => {
     >
       <div className="loyalty-container">
         
-        {/* BOUTONS DE NAVIGATION ARCADE */}
         <button 
           className="slider-btn prev" 
           onClick={prevSlide} 
@@ -198,13 +160,11 @@ const LoyaltyDashboard = () => {
           ►
         </button>
 
-        {/* LA PISTE QUI GLISSE */}
         <div 
           className="slider-track" 
           style={{ transform: `translateX(calc(-${currentSlide * 100}% - ${currentSlide * 100}px))` }}
         >
           
-          {/* SLIDE 1 : MON PROGRAMME DE FIDÉLITÉ */}
           <div className="loyalty-card">
             <h2 className="loyalty-title">mon programme de fidélité</h2>
             
@@ -266,7 +226,6 @@ const LoyaltyDashboard = () => {
             </div>
           </div>
 
-          {/* SLIDE 2 : MES STATISTIQUES & HISTORIQUE */}
           <div className="loyalty-card">
             <h3 className="loyalty-title">mes statistiques & historique</h3>
             
@@ -356,7 +315,6 @@ const LoyaltyDashboard = () => {
             )}
           </div>
 
-          {/* SLIDE 3 : SUCCÈS & TROPHÉES */}
           <div className="loyalty-card">
             <h3 className="loyalty-title">succès & trophées</h3>
 
@@ -436,7 +394,6 @@ const LoyaltyDashboard = () => {
 
         </div>
 
-        {/* INDICATEURS DE POSITION (Losanges Cyberpunk) */}
         <div className="slider-indicators">
           <div 
             className={`indicator ${currentSlide === 0 ? 'active' : ''}`} 

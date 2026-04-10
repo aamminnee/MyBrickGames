@@ -1,4 +1,4 @@
-import './Cell.css'; // import du css
+import './Cell.css';
 
 interface CellProps {
   color: string | null;

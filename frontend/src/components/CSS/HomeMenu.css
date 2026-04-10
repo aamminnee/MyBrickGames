@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-/* --- LE CONTENEUR PRINCIPAL --- */
 .arcade-home-container {
   min-height: 100vh;
   display: flex;
@@ -13,7 +12,6 @@
   background-color: #000;
 }
 
-/* --- LE FOND QUI GLITCH --- */
 .arcade-home-container::before {
   content: "";
   position: absolute;
@@ -39,7 +37,6 @@
   100% { transform: translate(0, 0); filter: hue-rotate(0deg) contrast(1); }
 }
 
-/* --- LA GRILLE LASER 3D --- */
 .arcade-home-container::after {
   content: "";
   position: absolute;
@@ -67,7 +64,6 @@
   100% { transform: perspective(300px) rotateX(75deg) translateY(25px); } 
 }
 
-/* --- L'ÉCRAN DE LA BORNE D'ARCADE --- */
 .arcade-monitor {
   position: relative;
   z-index: 2;
@@ -84,7 +80,6 @@
   text-align: center;
 }
 
-/* Titre du jeu */
 .arcade-title {
   color: #ffea00;
   font-size: 2rem;
@@ -93,7 +88,6 @@
   text-shadow: 4px 4px 0px #ff007f;
 }
 
-/* --- LE MENU VERTICAL --- */
 .arcade-menu-list {
   display: flex;
   flex-direction: column;
@@ -101,7 +95,6 @@
   align-items: center;
 }
 
-/* Style des sélecteurs et inputs */
 .arcade-input-field {
   background: transparent;
   border: 2px dashed #00ffff;
@@ -119,7 +112,6 @@
   box-shadow: 0 0 15px #00ffff;
 }
 
-/* Boutons du menu */
 .arcade-menu-btn {
   background: transparent;
   color: #fff;
@@ -149,7 +141,6 @@
   transform: scale(1.1);
 }
 
-/* Section "Rejoindre" */
 .arcade-join-group {
   display: flex;
   flex-direction: column;
@@ -175,19 +166,16 @@
   100% { transform: translateY(0px); }
 }
 
-/* Mise à jour du moniteur */
 .arcade-monitor {
   border: 4px solid var(--neon-blue);
   box-shadow: 0 0 20px rgba(0, 85, 255, 0.4), inset 0 0 40px rgba(0, 0, 0, 1);
 }
 
-/* Sélecteur de jeu (Bleu/Cyan) */
 .arcade-input-field {
   border: 2px solid var(--neon-cyan);
   color: var(--neon-cyan);
 }
 
-/* Bouton Solo (Jaune) */
 .arcade-menu-btn:nth-of-type(1) {
   color: var(--neon-yellow);
 }
@@ -195,7 +183,6 @@
   text-shadow: 0 0 10px var(--neon-yellow);
 }
 
-/* Bouton VS Mode / Host (Rouge) */
 .arcade-menu-btn:nth-of-type(2) {
   color: var(--neon-red);
 }
@@ -203,12 +190,10 @@
   text-shadow: 0 0 10px var(--neon-red);
 }
 
-/* Zone Rejoindre */
 .arcade-join-group {
   border-top: 2px dashed #444;
 }
 
-/* --- ARCADE SELECT CUSTOM --- */
 .arcade-select-container {
   position: relative;
   width: 100%;
@@ -280,10 +265,6 @@
   border-left: 3px solid var(--neon-cyan);
 }
 
-
-/* ============================================
-   RESPONSIVE — TABLETTE (≤ 768px)
-   ============================================ */
 @media (max-width: 768px) {
 
   .arcade-home-container {
@@ -336,10 +317,6 @@
   }
 }
 
-
-/* ============================================
-   RESPONSIVE — MOBILE (≤ 480px)
-   ============================================ */
 @media (max-width: 480px) {
 
   .arcade-home-container {
@@ -356,7 +333,6 @@
   .arcade-logo {
     max-width: 200px;
     margin-bottom: 24px;
-    /* Réduit l'amplitude du float sur petit écran */
     animation: float-sm 3s ease-in-out infinite;
   }
 
@@ -373,7 +349,6 @@
   .arcade-menu-btn {
     font-size: 0.72rem;
     padding: 8px 12px;
-    /* La flèche déborde moins sur petit écran */
   }
 
   .arcade-menu-btn::before {
@@ -413,10 +388,6 @@
   }
 }
 
-
-/* ============================================
-   RESPONSIVE — TRÈS PETIT MOBILE (≤ 360px)
-   ============================================ */
 @media (max-width: 360px) {
 
   .arcade-monitor {
@@ -437,16 +408,8 @@
   }
 }
 
-
-/* ============================================
-   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
-   ============================================ */
-/* ============================================
-   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
-   ============================================ */
 @media (max-height: 500px) and (orientation: landscape) {
 
-  /* On garde le centrage absolu au milieu de l'écran */
   .arcade-home-container {
     align-items: center; 
     justify-content: center;
@@ -455,13 +418,12 @@
     box-sizing: border-box;
   }
 
-  /* Le monitor en mode VERTICAL (column) centré */
   .arcade-monitor {
     display: flex;
-    flex-direction: column; /* RETOUR AU MODE VERTICAL */
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px; /* On réduit l'espace pour que ça tienne en hauteur */
+    gap: 10px; 
     padding: 15px 20px;
     max-width: 90%; 
     margin: 0 auto;
@@ -469,19 +431,17 @@
     text-align: center;
   }
 
-  /* Le logo en haut, un peu plus petit */
   .arcade-logo {
-    max-width: 100px; /* Plus petit pour laisser de la place aux boutons */
+    max-width: 100px; 
     margin-bottom: 0;
     flex-shrink: 0;
     animation: float-sm 3s ease-in-out infinite;
   }
 
-  /* Le menu en dessous */
   .arcade-menu-list {
     display: flex;
     flex-direction: column;
-    gap: 8px; /* Espace réduit entre les boutons */
+    gap: 8px;
     align-items: center;
     justify-content: center;
     width: 100%;

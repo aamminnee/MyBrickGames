@@ -1,20 +1,16 @@
 import { Request, Response } from 'express';
 import { Player } from '../models/Player';
 
-// retrieve loyalty points of a player via their identifier
 export const getLoyaltyPoints = async (req: Request, res: Response) => {
     try {
         const { loyaltyId } = req.params;
         
-        // search for the player in mongo database
         const player = await Player.findOne({ loyaltyId });
 
         if (!player) {
-            // return 0 if player does not exist yet
             return res.status(404).json({ message: "player not found", points: 0 });
         }
 
-        // calculate total points by checking expiration date
         const now = new Date();
         const totalPoints = player.loyaltyPoints.reduce((sum, batch) => {
             if (batch.expirationDate > now) {
@@ -23,16 +19,13 @@ export const getLoyaltyPoints = async (req: Request, res: Response) => {
             return sum;
         }, 0);
 
-        // return calculated total balance in json format
         return res.status(200).json({ loyaltyId, points: totalPoints });
     } catch (error) {
-        // server error handling
         console.error(error);
         return res.status(500).json({ message: "internal server error" });
     }
 };
 
-// retrieve points balance of a player
 export const getBalance = async (req: Request, res: Response) => {
     try {
         const { loyaltyId } = req.params;
@@ -43,7 +36,6 @@ export const getBalance = async (req: Request, res: Response) => {
         }
 
         const now = new Date();
-        // calculate total of valid points (not expired)
         const totalPoints = player.loyaltyPoints
             .filter(p => p.expirationDate > now)
             .reduce((sum, p) => sum + p.amount, 0);
@@ -54,7 +46,6 @@ export const getBalance = async (req: Request, res: Response) => {
     }
 };
 
-// consume loyalty points according to expiration policy (closest to expiration first)
 export const consumePoints = async (req: Request, res: Response) => {
     try {
         const { loyaltyId } = req.params;
@@ -68,13 +59,11 @@ export const consumePoints = async (req: Request, res: Response) => {
 
         const now = new Date();
         
-        // retrieve indices of valid points, sorted by increasing expiration date
         const pointIndices = player.loyaltyPoints
             .map((p, index) => ({ index, expirationDate: p.expirationDate, amount: p.amount }))
             .filter(p => p.expirationDate > now && p.amount > 0)
             .sort((a, b) => a.expirationDate.getTime() - b.expirationDate.getTime());
 
-        // calculate available total to ensure there are enough points
         const totalPoints = pointIndices.reduce((sum, p) => sum + p.amount, 0);
 
         if (totalPoints < pointsToConsume) {
@@ -83,7 +72,6 @@ export const consumePoints = async (req: Request, res: Response) => {
 
         let remainingToConsume = pointsToConsume;
 
-        // deduct points block by block
         for (const item of pointIndices) {
             if (remainingToConsume <= 0) break;
 
@@ -96,8 +84,7 @@ export const consumePoints = async (req: Request, res: Response) => {
                 remainingToConsume = 0;
             }
         }
-
-        // clean the array to keep only batches that still have points
+        
         player.loyaltyPoints = player.loyaltyPoints.filter(p => p.amount > 0);
 
         await player.save();

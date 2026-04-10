@@ -1,5 +1,4 @@
-// main application entry point and routing
-import { useState, useEffect, useRef } from 'react'; // Ajoute useRef ici
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { io } from 'socket.io-client';
 import ReproductionGame from './components/game/reproduction/ReproductionGame';
@@ -11,7 +10,6 @@ import WaitingLobby from './components/layout/WaitingLobby';
 import LoyaltyDashboard from './components/loyalty/LoyaltyDashboard';
 import './App.css'; 
 
-// initialize socket connection
 const socket = io('http://localhost:3000');
 
 const MultiplayerHub = () => {
@@ -26,28 +24,25 @@ const MultiplayerHub = () => {
   const [isHost, setIsHost] = useState(false);
   const [guestArrived, setGuestArrived] = useState(false);
   const [selectedGame, setSelectedGame] = useState('reproduction');
-  const [difficulty, setDifficulty] = useState('normal'); // added difficulty state
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [difficulty, setDifficulty] = useState('normal');
   const [gameData, setGameData] = useState<any>(null);
 
   useEffect(() => {
     const roomFromUrl = searchParams.get('room');
     
-    // On vérifie qu'on n'a pas déjà essayé de rejoindre
     if (roomFromUrl && !hasAttemptedJoin.current) {
-      hasAttemptedJoin.current = true; // On verrouille immédiatement
+      hasAttemptedJoin.current = true;
       setJoinCode(roomFromUrl); 
       socket.emit('join_room', roomFromUrl); 
     }
   }, [searchParams]);
 
-  // listen to socket events
   useEffect(() => {
     socket.on('room_created', (code: string) => {
       setRoomCode(code);
       setIsHost(true);
       setScreen('lobby');
-      navigate(`/?room=${code}`); // <--- AJOUTE JUSTE CETTE LIGNE ICI !
+      navigate(`/?room=${code}`);
     });
 
     socket.on('room_joined_success', (code: string) => {
@@ -65,8 +60,8 @@ const MultiplayerHub = () => {
 
     socket.on('room_error', (msg: string) => {
       alert(msg);
-      setJoinCode(''); // Vide le champ input
-      navigate('/');   // Nettoie l'URL pour la remettre à zéro
+      setJoinCode('');
+      navigate('/');  
     });
 
 
@@ -74,19 +69,18 @@ const MultiplayerHub = () => {
 
     socket.on('room_closed', (msg: string) => {
       alert(msg);
-      // On nettoie l'écran proprement SANS casser la connexion
       setScreen('home');
       setRoomCode('');
       setJoinCode('');
       setIsHost(false);
       setGuestArrived(false);
       setGameData(null);
-      navigate('/'); // <-- Retourne à l'URL propre
+      navigate('/');
     });
 
     socket.on('back_to_lobby', () => {
-      setGameData(null); // On efface les données de la partie précédente
-      setScreen('lobby'); // On reaffiche le salon
+      setGameData(null); 
+      setScreen('lobby'); 
     });
 
     return () => {
@@ -99,40 +93,34 @@ const MultiplayerHub = () => {
       socket.off('room_closed');
       socket.off('back_to_lobby');
     };
-  }, [navigate]); // N'oublie pas d'ajouter navigate ici
+  }, [navigate]); 
 
-  // join an existing room
   const handleJoin = () => {
     if (!joinCode) return;
-    // On envoie juste la demande, et on laisse room_joined_success faire le reste
+  
     socket.emit('join_room', joinCode);
   };
-  // start the game for the host
+
   const handleStartGame = () => {
     socket.emit('launch_game', { roomCode, gameId: selectedGame, difficulty });
   };
 
-  // initialize a solo session locally
+
   const handlePlaySolo = () => {
     setIsHost(true);
     
-    // Supprimez l'objet { gameId: ..., difficulty: ... }
-    // Forcez gameData à null pour que le sélecteur apparaisse
     setGameData(null); 
     
     setScreen('playing'); 
   };
 
-  // reset home and leave multiplayer server
   const handleReturnHome = (e: React.MouseEvent) => {
     e.preventDefault();
     
-    // 1. On prévient poliment le serveur qu'on quitte le salon
     if (roomCode) {
       socket.emit('leave_room');
     }
     
-    // 2. On réinitialise l'interface visuelle
     setScreen('home');
     setRoomCode('');
     setJoinCode('');
@@ -140,7 +128,6 @@ const MultiplayerHub = () => {
     setGuestArrived(false);
     setGameData(null);
     
-    // 3. On nettoie l'URL
     navigate('/');
   };
 
@@ -174,11 +161,9 @@ const MultiplayerHub = () => {
         />
       )}
 
-      {/* display playing area */}
       {screen === 'playing' && (
         <div className="app-playing-area">
           <div className="game-card app-game-card-wrapper">
-            {/* On utilise gameData (multi) ou selectedGame (solo) pour choisir le jeu */}
             {(gameData?.gameId || selectedGame) === 'tetris' ? (
               <TetrisGame initialLevelData={gameData?.levelData} socket={socket} roomCode={roomCode} />
             ) : (

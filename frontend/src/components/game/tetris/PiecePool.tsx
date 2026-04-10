@@ -1,16 +1,13 @@
-// available pieces container
 import React from 'react';
 import '../../CSS/PiecePool.css'; 
 import DraggableBrick from '../DraggableBrick';
 import { shapeToBricks } from '../../../utils/gameUtils';
 
-// shape interface
 export interface Piece {
   shape: number[][];
   color: string;
 }
 
-// pool properties
 interface PiecePoolProps {
   availablePieces: (Piece | null)[];
   isDragging: boolean;

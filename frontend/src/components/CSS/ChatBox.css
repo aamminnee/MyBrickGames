@@ -1,10 +1,5 @@
-/* ============================================
-   ChatBox — Dark Gaming / Néon
-   ============================================ */
-
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@300;400;500&display=swap');
 
-/* Variables */
 :root {
   --chat-bg: #0f0e1a;
   --chat-surface: #16142a;
@@ -30,7 +25,6 @@
   --radius-input:     14px;
 }
 
-/* ---- Container ---- */
 .chat-container {
   position: relative;
   display: flex;
@@ -47,7 +41,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* ---- Ambient glow orbs ---- */
 .chat-glow {
   position: absolute;
   border-radius: 50%;
@@ -70,7 +63,6 @@
   background: radial-gradient(circle, rgba(34, 211, 238, 0.12) 0%, transparent 70%);
 }
 
-/* ---- Header ---- */
 .chat-header {
   position: relative;
   z-index: 1;
@@ -134,7 +126,6 @@
   50%       { opacity: 0.5; transform: scale(0.8); }
 }
 
-/* ---- Messages zone ---- */
 .chat-messages {
   position: relative;
   z-index: 1;
@@ -158,7 +149,6 @@
   background: rgba(139, 92, 246, 0.6);
 }
 
-/* ---- Empty state ---- */
 .chat-empty {
   flex: 1;
   display: flex;
@@ -182,7 +172,6 @@
   to   { transform: rotate(360deg); }
 }
 
-/* ---- Message wrapper ---- */
 .chat-msg-wrapper {
   display: flex;
   flex-direction: column;
@@ -198,7 +187,6 @@
 .chat-msg-wrapper.me    { align-self: flex-end; }
 .chat-msg-wrapper.other { align-self: flex-start; }
 
-/* ---- Sender name ---- */
 .chat-msg-sender {
   font-family: var(--font-display);
   font-size: 0.62rem;
@@ -212,7 +200,6 @@
 .me .chat-msg-sender    { text-align: right; color: rgba(167, 139, 250, 0.7); }
 .other .chat-msg-sender { color: rgba(34, 211, 238, 0.6); }
 
-/* ---- Bubble ---- */
 .chat-msg-bubble {
   padding: 11px 16px;
   border-radius: var(--radius-bubble);
@@ -240,7 +227,6 @@
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-/* ---- Input area ---- */
 .chat-input-area {
   position: relative;
   z-index: 1;
@@ -279,7 +265,6 @@
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
 }
 
-/* ---- Send button ---- */
 .chat-send-btn {
   flex-shrink: 0;
   width: 42px;
@@ -312,9 +297,6 @@
   cursor: not-allowed;
 }
 
-/* ============================================
-   Mode Overlay (Flottant)
-   ============================================ */
 .chat-floating-btn {
   position: fixed;
   bottom: 30px;
@@ -343,7 +325,7 @@
   position: absolute;
   top: -5px;
   right: -5px;
-  background: #ff003c; /* Néon rouge */
+  background: #ff003c;
   color: white;
   font-family: var(--font-display);
   font-size: 0.9rem;
@@ -366,7 +348,7 @@
 
 .chat-floating-panel {
   position: fixed;
-  bottom: 110px; /* S'ouvre juste au-dessus du bouton */
+  bottom: 110px;
   right: 30px;
   width: 360px;
   height: 550px;
@@ -408,9 +390,6 @@
   box-shadow: 0 0 10px rgba(255, 0, 60, 0.5);
 }
 
-/* ============================================================
-   RESPONSIVE — MOBILE (≤ 650px)
-   ============================================================ */
 @media (max-width: 650px) {
 
   .chat-container {
@@ -461,7 +440,6 @@
     border-radius: 10px;
   }
 
-  /* Panneau flottant : pleine largeur sur mobile */
   .chat-floating-panel {
     right: 10px;
     left: 10px;
@@ -477,10 +455,6 @@
   }
 }
 
-
-/* ============================================================
-   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
-   ============================================================ */
 @media (max-height: 500px) and (orientation: landscape) {
 
   .chat-header {
@@ -515,7 +489,6 @@
     height: 34px;
   }
 
-  /* Panneau flottant compact en landscape */
   .chat-floating-panel {
     bottom: 70px;
     right: 16px;
