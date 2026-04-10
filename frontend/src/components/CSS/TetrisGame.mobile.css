@@ -1,13 +1,9 @@
-/* ============================================================
-   TETRIS — CSS EXCLUSIF AU NOUVEAU JSX MOBILE
-   ============================================================ */
-
 .tetris-mobile-wrapper {
   display: flex;
   flex-direction: row;
   align-items: stretch;
   justify-content: center;
-  gap: 12px; /* Un peu plus d'espace entre les colonnes */
+  gap: 12px; 
   width: 100vw;
   height: 100vh;
   background-size: cover;
@@ -34,9 +30,8 @@
   justify-content: center;
 }
 
-/* --- Colonnes Latérales --- */
 .tetris-mobile-side {
-  width: 160px; /* AGRANDI (était 120px) */
+  width: 160px;
   gap: 10px;
   overflow-y: auto;
 }
@@ -45,12 +40,11 @@
   display: none;
 }
 
-/* Boîtes génériques */
 .tetris-mobile-box {
   background: rgba(5, 5, 15, 0.9);
   border: 1px solid var(--neon-cyan);
   border-radius: 6px;
-  padding: 8px; /* AGRANDI */
+  padding: 8px; 
   text-align: center;
   box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
   display: flex;
@@ -60,7 +54,7 @@
 
 .mobile-label {
   font-family: var(--font-heading);
-  font-size: 0.65rem; /* AGRANDI (était 0.45rem) */
+  font-size: 0.65rem;
   color: var(--neon-cyan);
   margin-bottom: 6px;
   letter-spacing: 1px;
@@ -72,10 +66,9 @@
   line-height: 1;
 }
 
-.score-val { font-size: 1.8rem; } /* AGRANDI (était 1.2rem) */
-.opp-score { font-size: 1.2rem; color: var(--neon-magenta); margin-bottom: 4px;} /* AGRANDI */
+.score-val { font-size: 1.8rem; } 
+.opp-score { font-size: 1.2rem; color: var(--neon-magenta); margin-bottom: 4px;} 
 
-/* Brique (Panneau gauche) */
 .tetris-mobile-piece {
   background: #1a1a2a;
   border: 1px solid #2d2d44;
@@ -83,12 +76,10 @@
   border-radius: 4px;
 }
 
-/* On force la taille de la brique en CSS pour qu'elle soit plus grosse */
 .tetris-mobile-piece .board-container {
-  --cell-size: 12px !important; /* AGRANDI (était 12px) */
+  --cell-size: 12px !important; 
 }
 
-/* Règles (Barème) */
 .mobile-rules ul {
   list-style: none;
   padding: 0;
@@ -104,18 +95,17 @@
   display: flex;
   align-items: center;
   font-family: var(--font-heading);
-  font-size: 0.65rem; /* AGRANDI */
+  font-size: 0.65rem; 
   color: var(--neon-yellow);
 }
 
 .rule-color {
-  width: 10px; /* AGRANDI */
-  height: 10px; /* AGRANDI */
+  width: 10px; 
+  height: 10px;
   margin-right: 4px;
   border: 1px solid rgba(255,255,255,0.4);
 }
 
-/* Timer Override */
 .timer-box .timer-container {
   flex-direction: row !important;
   padding: 0 !important;
@@ -126,11 +116,10 @@
   min-width: 0 !important;
 }
 
-.timer-box .timer-value { font-size: 1.6rem !important; } /* AGRANDI */
-.timer-box .timer-label { font-size: 0.55rem !important; } /* AGRANDI */
+.timer-box .timer-value { font-size: 1.6rem !important; } 
+.timer-box .timer-label { font-size: 0.55rem !important; } 
 .timer-box .timer-bar-track { display: none !important; }
 
-/* --- Colonne Centrale --- */
 .tetris-mobile-center {
   flex: 1;
   align-items: center;
@@ -144,9 +133,8 @@
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
 }
 
-/* On force la taille de la grille principale pour qu'elle soit plus grosse */
 .tetris-mobile-center .board-container {
-  --cell-size: 20px !important; /* AGRANDI (était 20px) */
+  --cell-size: 20px !important;
   background-color: #1a1a2a !important; 
   border: 1px solid #2d2d44 !important;
 }
@@ -156,11 +144,10 @@
   border: 1px solid #33334a !important;
 }
 
-/* Grille adversaire couleurs & taille */
 .opp-box {
   border-color: var(--neon-magenta);
 }
 
 .opp-box .board-container {
-  --cell-size: 10px !important; /* AGRANDI (était 8px) */
+  --cell-size: 10px !important;
 }

@@ -9,18 +9,15 @@ interface GameOverTetrisProps {
 }
 
 const GameOverTetris = ({ score, lines, onRestart, onReturnHome }: GameOverTetrisProps) => {
-  // state for database save
   const [pointsSaved, setPointsSaved] = useState(false);
   const [pointsEarned, setPointsEarned] = useState(0);
 
-  // automatic api call when game over is displayed
   useEffect(() => {
     const saveTetrisScore = async () => {
       const loyaltyId = localStorage.getItem('loyalty_id');
       
       if (loyaltyId && !pointsSaved) {
         try {
-          // fixed api route to match the backend playerroutes.ts
           const response = await fetch(`http://localhost:3000/api/player/${loyaltyId}/game`, {
             method: 'POST',
             headers: {

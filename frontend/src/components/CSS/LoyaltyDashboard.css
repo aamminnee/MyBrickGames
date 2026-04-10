@@ -1,17 +1,13 @@
-/* src/components/CSS/LoyaltyDashboard.css */
 .loyalty-container {
   position: relative;
-  /* On remplace 1200px par 95% de la largeur de la fenêtre (vw) */
   width: 95vw; 
-  /* On enlève max-width ou on le met très grand (ex: 2500px) */
   max-width: 2500px; 
   margin: 0 auto;
-  padding: 40px 80px; /* Un peu plus de padding sur les côtés pour les flèches */
+  padding: 40px 80px;
   color: #fff;
   overflow: hidden;
 }
 
-/* --- LA PISTE QUI GLISSE --- */
 .slider-track {
   display: flex;
   gap: 100px; 
@@ -20,7 +16,6 @@
   align-items: flex-start;
 }
 
-/* --- LES CARTES PRINCIPALES (LES SLIDES) --- */
 .loyalty-card {
   min-width: 100%; 
   width: 100%;
@@ -32,7 +27,6 @@
   box-shadow: 0 0 15px rgba(0, 85, 255, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.8);
 }
 
-/* --- LES BOUTONS DE NAVIGATION ARCADE --- */
 .slider-btn {
   position: absolute;
   top: 50%;
@@ -63,7 +57,6 @@
 .slider-btn.prev { left: 15px; }
 .slider-btn.next { right: 15px; }
 
-/* --- INDICATEURS DE PAGE (LES PETITS POINTS) --- */
 .slider-indicators {
   display: flex;
   justify-content: center;
@@ -98,11 +91,10 @@
   padding-bottom: 15px;
 }
 
-/* --- ZONE DE CONNEXION ET INPUTS --- */
 .loyalty-input-group {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centre le label et l'input */
+  align-items: center; 
   margin-bottom: 30px;
 }
 
@@ -114,7 +106,7 @@
 }
 
 .loyalty-input-group input {
-  text-align: center; /* Centre le texte tapé à l'intérieur */
+  text-align: center;
   width: 100%;
   max-width: 400px;
 }
@@ -135,7 +127,6 @@
   line-height: 1.5;
 }
 
-/* --- STATS ET POINTS --- */
 .loyalty-stat-box {
   text-align: center;
   margin-top: 20px;
@@ -157,14 +148,12 @@
   margin-top: 15px;
 }
 
-/* --- GRILLE DES STATISTIQUES --- */
 .stats-grid {
   display: grid;
-  /* On force par exemple 3 colonnes fixes au lieu de repeat(auto-fit...) */
   grid-template-columns: repeat(3, 1fr); 
-  gap: 30px; /* Plus d'espace entre les cartes de stats */
+  gap: 30px;
   margin-top: 20px;
-  max-width: 1400px; /* Optionnel : on limite la largeur de la grille elle-même au centre */
+  max-width: 1400px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -199,7 +188,6 @@
   text-shadow: 0 0 10px var(--neon-yellow); 
 }
 
-/* --- HISTORIQUE --- */
 .loyalty-history-list {
   list-style: none;
   padding: 0;
@@ -230,7 +218,6 @@
   color: var(--neon-cyan);
 }
 
-/* --- BARRE DE PROGRESSION & SUCCÈS --- */
 .global-progress-container {
   background: #000;
   padding: 20px;
@@ -269,7 +256,6 @@
   box-shadow: 0 0 10px var(--neon-red);
 }
 
-/* --- ONGLETS DES SUCCÈS --- */
 .achiev-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -301,20 +287,16 @@
   color: #fff; 
 }
 
-/* --- GRILLE DES TROPHÉES --- */
 .achiev-grid {
   display: grid;
-  /* On force exactement 2 colonnes de taille égale */
   grid-template-columns: 1fr 1fr; 
   gap: 20px;
-  /* On limite la hauteur pour activer le scroll interne */
   max-height: 500px; 
   overflow-y: auto;
-  padding-right: 10px; /* Espace pour la scrollbar */
+  padding-right: 10px; 
   margin-top: 20px;
 }
 
-/* Style de la scrollbar pour rester dans le thème Arcade */
 .achiev-grid::-webkit-scrollbar {
   width: 8px;
 }
@@ -366,7 +348,7 @@
   font-size: 0.6rem;
   color: #888;
   margin-bottom: 10px;
-  font-family: sans-serif; /* Plus lisible pour les longues descriptions */
+  font-family: sans-serif; 
 }
 
 .achiev-progress-text {
@@ -377,7 +359,6 @@
   text-align: right;
 }
 
-/* --- FILTRES --- */
 .filters-bar select {
   background: #000;
   color: var(--neon-cyan);
@@ -425,11 +406,11 @@
   border-style: solid;
   box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
 }
-/* --- LE MAXIMUM QU'ON PUISSE FAIRE SUR LES OPTIONS NATIVES --- */
+
 .filter-group select option {
-  background-color: #050505; /* Fond noir */
-  color: var(--neon-cyan);   /* Texte cyan */
-  font-family: var(--font-arcade); /* Ça marche sur Firefox, mais souvent ignoré sur Chrome/Safari */
+  background-color: #050505;
+  color: var(--neon-cyan);
+  font-family: var(--font-arcade); 
   font-size: 0.7rem;
   text-transform: uppercase;
 }
@@ -455,10 +436,9 @@
   background: rgba(255, 0, 60, 0.1);
 }
 
-/* --- ARCADE SELECT CUSTOM --- */
 .arcade-select-container {
   position: relative;
-  width: 220px; /* Largeur du bouton */
+  width: 220px; 
   font-family: var(--font-arcade);
   font-size: 0.6rem;
   user-select: none;
@@ -501,7 +481,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  z-index: 50; /* Pour passer par-dessus le reste */
+  z-index: 50; 
   max-height: 200px;
   overflow-y: auto;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.9);
@@ -517,7 +497,7 @@
 .arcade-select-item:hover {
   background: rgba(0, 229, 255, 0.1);
   color: #fff;
-  padding-left: 20px; /* Petit effet de glissement au survol */
+  padding-left: 20px; 
 }
 
 .arcade-select-item.selected {
@@ -526,30 +506,22 @@
   border-left: 3px solid var(--neon-cyan);
 }
 
-/* ============================================================
-   RESPONSIVE — TABLETTE (≤ 900px)
-   ============================================================ */
 @media (max-width: 900px) {
 
-  /* Réduit les paddings latéraux tout en gardant la place
-     pour les boutons prev/next (positionnés à left/right: 15px) */
   .loyalty-container {
     padding: 30px 50px;
   }
 
-  /* Stats : 2 colonnes au lieu de 3 */
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
   }
 
-  /* Succès : 2 colonnes déjà, on garde mais on réduit le gap */
   .achiev-grid {
     gap: 15px;
     max-height: 420px;
   }
 
-  /* Filtres : légère compression */
   .filters-bar {
     gap: 20px;
   }
@@ -559,48 +531,37 @@
   }
 }
 
-
-/* ============================================================
-   RESPONSIVE — MOBILE (≤ 600px)
-   ============================================================ */
 @media (max-width: 600px) {
 
-  /* Padding réduit mais suffit pour les boutons ◄ ► */
   .loyalty-container {
     padding: 25px 45px;
   }
 
-  /* Carte slide : moins de padding interne */
   .loyalty-card {
     padding: 20px 16px;
   }
 
-  /* Titre */
   .loyalty-title {
     font-size: 0.85rem;
     margin-bottom: 20px;
   }
 
-  /* Boutons de navigation plus petits */
   .slider-btn {
     font-size: 1rem;
     padding: 10px 12px;
   }
 
-  /* Stats : 1 colonne */
   .stats-grid {
     grid-template-columns: 1fr;
     gap: 15px;
   }
 
-  /* Succès : 1 colonne */
   .achiev-grid {
     grid-template-columns: 1fr;
     max-height: 400px;
     gap: 12px;
   }
 
-  /* Filtres : empilés verticalement */
   .filters-bar {
     flex-direction: column;
     align-items: flex-start;
@@ -612,12 +573,10 @@
     width: 100%;
   }
 
-  /* Select pleine largeur */
   .arcade-select-container {
     width: 100%;
   }
 
-  /* Onglets succès : 2 par ligne */
   .achiev-tabs {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -629,7 +588,6 @@
     padding: 10px 6px;
   }
 
-  /* Carte succès : on réduit la hauteur min */
   .achiev-card {
     min-height: 90px;
     padding: 12px;
@@ -648,7 +606,6 @@
     font-size: 0.55rem;
   }
 
-  /* Historique : empiler gauche/droite */
   .loyalty-history-item {
     flex-direction: column;
     gap: 8px;
@@ -659,7 +616,6 @@
     text-align: left;
   }
 
-  /* Progression globale : retire le float */
   .global-progress-stats {
     float: none;
     display: block;
@@ -672,17 +628,14 @@
     font-size: 0.7rem;
   }
 
-  /* Stat box points */
   .loyalty-stat-value {
     font-size: 2.2rem;
   }
 
-  /* Label inputs */
   .loyalty-input-group label {
     font-size: 0.65rem;
   }
 
-  /* Indicateurs losanges */
   .slider-indicators {
     gap: 10px;
     margin-top: 0;
@@ -695,10 +648,6 @@
   }
 }
 
-
-/* ============================================================
-   RESPONSIVE — PETIT MOBILE (≤ 400px)
-   ============================================================ */
 @media (max-width: 400px) {
 
   .loyalty-container {
@@ -735,16 +684,11 @@
     font-size: 1.8rem;
   }
 
-  /* Petit texte loyalty ID */
   .loyalty-connection-group p {
     font-size: 0.6rem !important;
   }
 }
 
-
-/* ============================================================
-   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
-   ============================================================ */
 @media (max-height: 500px) and (orientation: landscape) {
 
   .loyalty-container {
@@ -766,7 +710,6 @@
     gap: 12px;
   }
 
-  /* Réduit la hauteur scrollable des succès en landscape */
   .achiev-grid {
     max-height: 280px;
     grid-template-columns: 1fr 1fr;

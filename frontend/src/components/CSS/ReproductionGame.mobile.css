@@ -1,20 +1,16 @@
-/* ============================================================
-   REPRODUCTION — CSS EXCLUSIF AU NOUVEAU JSX MOBILE
-   ============================================================ */
-
 .repro-mobile-wrapper {
   display: flex;
   flex-direction: row;
   align-items: stretch;
   justify-content: center;
-  gap: 16px; /* Plus d'espace entre les colonnes */
+  gap: 16px; 
   width: 100vw;
   height: 100vh;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   background-attachment: fixed;
-  padding: 15px; /* Plus d'espace sur les bords */
+  padding: 15px;
   box-sizing: border-box;
 }
 
@@ -34,9 +30,8 @@
   justify-content: center;
 }
 
-/* --- Colonnes Latérales --- */
 .repro-mobile-side {
-  width: 200px; /* TRÈS AGRANDI (était 160px) */
+  width: 200px; 
   gap: 12px;
   overflow-y: auto;
 }
@@ -45,12 +40,11 @@
   display: none;
 }
 
-/* Boîtes génériques */
 .repro-mobile-box {
   background: rgba(5, 5, 15, 0.9);
   border: 1px solid var(--neon-magenta);
   border-radius: 8px;
-  padding: 12px; /* AGRANDI */
+  padding: 12px;
   text-align: center;
   box-shadow: 0 0 10px rgba(255, 0, 255, 0.1);
   display: flex;
@@ -60,7 +54,7 @@
 
 .mobile-label {
   font-family: var(--font-heading);
-  font-size: 0.8rem; /* AGRANDI */
+  font-size: 0.8rem; 
   margin-bottom: 8px;
   letter-spacing: 1px;
 }
@@ -71,17 +65,14 @@
   line-height: 1;
 }
 
-.opp-score { font-size: 1.6rem; color: var(--neon-cyan); margin-bottom: 6px;} /* AGRANDI */
+.opp-score { font-size: 1.6rem; color: var(--neon-cyan); margin-bottom: 6px;}
 
-/* Boîte Modèle Cible (Magenta) */
 .target-box { border-color: var(--neon-magenta); }
 .target-box .mobile-label { color: var(--neon-magenta); }
 
-/* Boîte Brique Active (Cyan) */
 .active-box { border-color: var(--neon-cyan); }
 .active-box .mobile-label { color: var(--neon-cyan); }
 
-/* Zones de grilles latérales */
 .repro-mobile-target, .repro-mobile-active {
   background: #1a1a2a;
   border: 1px solid #2d2d44;
@@ -94,11 +85,9 @@
   box-sizing: border-box;
 }
 
-/* Tailles forcées pour les grilles latérales */
-.repro-mobile-target .board-container { --cell-size: 11px !important; } /* AGRANDI */
-.repro-mobile-active .board-container { --cell-size: 18px !important; } /* AGRANDI */
+.repro-mobile-target .board-container { --cell-size: 11px !important; }
+.repro-mobile-active .board-container { --cell-size: 18px !important; } 
 
-/* Timer Override (Jaune) */
 .timer-box { 
   border-color: var(--neon-yellow); 
   box-shadow: 0 0 10px rgba(255, 234, 0, 0.1); 
@@ -116,29 +105,25 @@
 .timer-box .timer-label { font-size: 0.7rem !important; color: var(--neon-yellow) !important; } /* AGRANDI */
 .timer-box .timer-bar-track { display: none !important; }
 
-/* Boîte Boutons */
 .actions-box { 
   border-color: transparent; 
   background: transparent; 
   box-shadow: none; 
   padding: 0; 
-  gap: 10px; /* Espace entre les boutons */
+  gap: 10px;
 }
 
-/* ON FORCE LA TAILLE DES BOUTONS (écrase le style en ligne du JSX) */
 .actions-box button {
-  font-size: 0.7rem !important; /* AGRANDI */
-  padding: 14px !important;     /* AGRANDI */
+  font-size: 0.7rem !important; 
+  padding: 14px !important;     
   margin-bottom: 0 !important;
   letter-spacing: 1px;
 }
 
-/* Grille adversaire */
 .opp-box { border-color: var(--neon-magenta); }
 .opp-box .mobile-label { color: var(--neon-magenta); }
-.opp-box .board-container { --cell-size: 12px !important; } /* AGRANDI */
+.opp-box .board-container { --cell-size: 12px !important; } 
 
-/* --- Colonne Centrale --- */
 .repro-mobile-center {
   flex: 1;
   align-items: center;
@@ -152,9 +137,8 @@
   box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
 }
 
-/* Grille principale */
 .repro-mobile-center .board-container {
-  --cell-size: 30px !important; /* TRÈS AGRANDI (était 26px) */
+  --cell-size: 30px !important; 
   background-color: #1a1a2a !important; 
   border: 1px solid #2d2d44 !important;
 }
@@ -164,7 +148,6 @@
   border: 1px solid #33334a !important;
 }
 
-/* Game Over */
 .repro-gameover {
   width: 100%;
   max-width: 450px;

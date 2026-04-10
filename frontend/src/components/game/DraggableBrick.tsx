@@ -1,9 +1,8 @@
 import React from 'react';
 import Board from './Board';
 import type { BrickObj } from './Board';
-import '../CSS/DraggableBrick.css'; // import du css
+import '../CSS/DraggableBrick.css';
 
-// interface pour les proprietes de la brique deplacable
 interface DraggableBrickProps {
   rows: number;
   cols: number;
@@ -17,7 +16,6 @@ interface DraggableBrickProps {
   onMouseDown?: (e: React.MouseEvent) => void;
 }
 
-// composant qui affiche une brique jouable
 const DraggableBrick = ({
   rows,
   cols,
@@ -30,7 +28,6 @@ const DraggableBrick = ({
   onClick,
   onMouseDown
 }: DraggableBrickProps) => {
-  // si la piece est deja placee
   if (disabled) {
     return (
       <div className="draggable-brick-wrapper draggable-brick-disabled">
@@ -41,7 +38,6 @@ const DraggableBrick = ({
 
   const dragClass = isDragging ? 'draggable-brick-dragging' : 'draggable-brick-active';
 
-  // affiche la piece deplacable
   return (
     <div className="draggable-brick-wrapper">
       <div

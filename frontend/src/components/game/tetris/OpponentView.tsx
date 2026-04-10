@@ -1,9 +1,7 @@
-// opponent view board for tetris
 import '../../CSS/OpponentView.css';
 import Board from '../Board';
 import { gridToBricks } from '../../../utils/gameUtils';
 
-// opponent properties
 interface OpponentViewProps {
   score: number;
   board: (string | null)[][];

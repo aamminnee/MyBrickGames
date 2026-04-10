@@ -54,19 +54,15 @@ io.on('connection', (socket) => {
   console.log(`un joueur s'est connecte (id: ${socket.id})`);
 
   // create a room
-  // create a room
   socket.on('create_room', () => {
-    // === NOUVEAU : Nettoyage de l'ancien salon ===
     const existingSession = playerSessions.get(socket.id);
     if (existingSession) {
-      socket.leave(existingSession.roomCode); // Quitte l'ancien
+      socket.leave(existingSession.roomCode);
     }
-    // ===========================================
 
     const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
     socket.join(roomCode);
     
-    // ON MÉMORISE L'HÔTE
     playerSessions.set(socket.id, { roomCode, role: 'host' });
     
     console.log(`le joueur ${socket.id} a cree le salon : ${roomCode}`);
@@ -76,7 +72,6 @@ io.on('connection', (socket) => {
   // join an existing room
   socket.on('join_room', (roomCode) => {
     
-    // 1. PROTECTION : si le joueur est déjà dans le salon, on ne refait pas tout
     if (socket.rooms.has(roomCode)) return;
 
     const room = io.sockets.adapter.rooms.get(roomCode);
@@ -84,13 +79,11 @@ io.on('connection', (socket) => {
     if (room && room.size === 1) { 
       socket.join(roomCode);
       
-      // On mémorise l'invité
       playerSessions.set(socket.id, { roomCode, role: 'guest' });
       console.log(`le joueur ${socket.id} a rejoint le salon : ${roomCode}`);
       
       io.to(roomCode).emit('player_joined', "le joueur 2 a rejoint le salon");
       
-      // 2. CONFIRMATION (C'est ça qui manquait !)
       socket.emit('room_joined_success', roomCode);
     } 
     else if (room && room.size >= 2) {
@@ -103,7 +96,7 @@ io.on('connection', (socket) => {
   socket.on('leave_room', () => {
     const session = playerSessions.get(socket.id);
     if (session) {
-      socket.leave(session.roomCode); // Retire le socket de la room
+      socket.leave(session.roomCode); 
       
       if (session.role === 'host') {
         socket.to(session.roomCode).emit('room_closed', "L'hôte a fermé le salon.");
@@ -111,7 +104,7 @@ io.on('connection', (socket) => {
         socket.to(session.roomCode).emit('player_left');
       }
       
-      playerSessions.delete(socket.id); // On oublie que ce joueur était dans un salon
+      playerSessions.delete(socket.id);
     }
   });
 
@@ -119,18 +112,15 @@ io.on('connection', (socket) => {
     const session = playerSessions.get(socket.id);
     if (session) {
       if (session.role === 'host') {
-        // L'hôte part : on avertit l'invité de la destruction du salon
         socket.to(session.roomCode).emit('room_closed', "L'hôte a fermé ou quitté le salon.");
       } else if (session.role === 'guest') {
-        // L'invité part : on prévient l'hôte pour qu'il puisse attendre quelqu'un d'autre
         socket.to(session.roomCode).emit('player_left');
       }
-      playerSessions.delete(socket.id); // On nettoie la mémoire
+      playerSessions.delete(socket.id);
     }
     console.log(`le joueur ${socket.id} s'est deconnecte`);
   });
 
-  // launch game based on mode
   // launch game based on mode
   socket.on('launch_game', async (data) => {
     try {
@@ -151,7 +141,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // sync tetris game state between players
   socket.on('send_tetris_state', (data) => {
     socket.to(data.roomCode).emit('receive_tetris_state', data);
   });
@@ -160,7 +149,6 @@ io.on('connection', (socket) => {
     socket.to(data.roomCode).emit('receive_repro_state', data);
   });
 
-  // Relayer la fin de partie d'un joueur à son adversaire
   socket.on('player_finished', (data) => {
     socket.to(data.roomCode).emit('opponent_finished', data);
   });
@@ -170,11 +158,9 @@ io.on('connection', (socket) => {
   });
 
   socket.on('send_pseudo', (data) => {
-    // On envoie le pseudo reçu à tous les autres membres du salon
     socket.to(data.roomCode).emit('receive_pseudo', data);
   });
 
-  // handle chat
   socket.on('send_message', (data) => {
     io.to(data.roomCode).emit('receive_message', {
       sender: data.sender,
@@ -184,7 +170,6 @@ io.on('connection', (socket) => {
   });
 });
 
-// start server
 httpServer.listen(PORT, () => {
   console.log(`serveur demarre sur http://localhost:${PORT}`);
 });

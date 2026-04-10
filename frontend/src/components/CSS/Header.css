@@ -36,10 +36,6 @@
   color: #333;
 }
 
-
-/* ============================================
-   RESPONSIVE — TABLETTE (≤ 768px)
-   ============================================ */
 @media (max-width: 768px) {
 
   .game-header {
@@ -54,16 +50,12 @@
   }
 }
 
-
-/* ============================================
-   RESPONSIVE — MOBILE (≤ 480px)
-   ============================================ */
 @media (max-width: 480px) {
 
   .game-header {
     padding: 10px 8px;
     gap: 4px;
-    flex-wrap: wrap;          /* Permet aux liens de passer à la ligne si besoin */
+    flex-wrap: wrap;        
     justify-content: center;
   }
 
@@ -78,10 +70,6 @@
   }
 }
 
-
-/* ============================================
-   RESPONSIVE — TRÈS PETIT MOBILE (≤ 360px)
-   ============================================ */
 @media (max-width: 360px) {
 
   .game-header {
@@ -93,16 +81,11 @@
     padding: 4px 5px;
   }
 
-  /* Cache le séparateur "|" pour gagner de la place */
   .header-separator {
     display: none;
   }
 }
 
-
-/* ============================================
-   RESPONSIVE — TÉLÉPHONE EN PAYSAGE (landscape)
-   ============================================ */
 @media (max-height: 500px) and (orientation: landscape) {
 
   .game-header {

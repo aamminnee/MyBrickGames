@@ -1,10 +1,8 @@
-// fichier : src/controllers/playercontroller.ts
 import { Request, Response } from 'express';
 import { Player } from '../models/Player';
 import GameHistory from '../models/GameHistory';
 import policy from '../config/pointsPolicy.json';
 
-// utilitaire pour calculer le total des points valides
 const getValidPoints = (player: any): number => {
   const now = new Date();
   return player.loyaltyPoints
@@ -12,18 +10,15 @@ const getValidPoints = (player: any): number => {
     .reduce((total: number, batch: any) => total + batch.amount, 0);
 };
 
-// verifie si on est en happy hour ou en week-end
 const getDynamicMultiplier = (): number => {
     const now = new Date();
     const day = now.getDay(); 
     const hour = now.getHours();
 
-    // 1. verification happy hour
     if (hour >= policy.dynamicBoosts.happyHour.startHour && hour < policy.dynamicBoosts.happyHour.endHour) {
         return policy.dynamicBoosts.happyHour.multiplier;
     }
 
-    // 2. verification week-end 
     const isFridayEvening = day === policy.dynamicBoosts.weekend.startDay && hour >= policy.dynamicBoosts.weekend.startHour;
     const isSaturday = day === 6;
     const isSunday = day === policy.dynamicBoosts.weekend.endDay;
@@ -35,7 +30,6 @@ const getDynamicMultiplier = (): number => {
     return 1.0;
 };
 
-// recuperer les points du joueur
 export const getPlayerPoints = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
@@ -72,7 +66,6 @@ export const getPlayerPoints = async (req: Request, res: Response): Promise<void
   }
 };
 
-// consommer des points
 export const consumePoints = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
@@ -132,18 +125,15 @@ export const consumePoints = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// enregistrer une partie avec prise en compte du mode et du resultat
 export const addGameResult = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
-    // on recupere desormais le mode et le resultat depuis le front
     const { gameId, score, difficulty, mode = 'solo', result = 'none' } = req.body;
 
     const now = new Date();
     const pointsBatches: { amount: number, expirationDate: Date }[] = [];
     let totalPointsEarned = 0;
 
-    // 1. prime de participation
     const partDate = new Date(now);
     partDate.setDate(partDate.getDate() + policy.participation.expirationDays);
     pointsBatches.push({ amount: policy.participation.points, expirationDate: partDate });
@@ -151,7 +141,6 @@ export const addGameResult = async (req: Request, res: Response): Promise<void> 
 
     const boost = getDynamicMultiplier();
 
-    // 2. calcul des points de performance
     let perfPoints = 0;
     let perfExpiry = 30;
 
@@ -191,7 +180,6 @@ export const addGameResult = async (req: Request, res: Response): Promise<void> 
         totalPointsEarned += perfPoints;
     }
 
-    // 3. sauvegarde en base de donnees avec stats
     const history = new GameHistory({
       loyalty_id: loyaltyId,
       gameId,
@@ -227,7 +215,6 @@ export const addGameResult = async (req: Request, res: Response): Promise<void> 
   }
 };
 
-// recuperer l'historique brut
 export const getPlayerHistory = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
@@ -239,13 +226,11 @@ export const getPlayerHistory = async (req: Request, res: Response): Promise<voi
   }
 };
 
-// nouvelle route pour recuperer les statistiques detaillees
 export const getPlayerStats = async (req: Request, res: Response): Promise<void> => {
   try {
     const loyaltyId = req.params.loyalty_id || req.params.loyaltyId;
     const history = await GameHistory.find({ loyalty_id: loyaltyId });
 
-    // initialisation de l'objet de statistiques
     const stats = {
       totalPlayed: history.length,
       totalWins: 0,
@@ -270,7 +255,6 @@ export const getPlayerStats = async (req: Request, res: Response): Promise<void>
       }
     };
 
-    // parcours de l'historique pour compiler les stats
     history.forEach(game => {
       const isMulti = game.mode === 'multi';
       const isSolo = game.mode === 'solo';
@@ -316,7 +300,6 @@ export const getPlayerStats = async (req: Request, res: Response): Promise<void>
       }
     });
 
-    // calcul du ratio de victoire en multijoueur (uniquement les parties decisives)
     const multiTotalDecisive = stats.multiWins + stats.multiLosses;
     const multiWinRatio = multiTotalDecisive > 0 ? (stats.multiWins / multiTotalDecisive * 100).toFixed(1) : "0.0";
 

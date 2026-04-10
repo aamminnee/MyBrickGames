@@ -1,23 +1,16 @@
-/* src/App.css */
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
 :root {
-  /* --- PALETTE OFFICIELLE (Adaptée pour fond sombre) --- */
-  --arcade-bg: #050505;        /* Noir profond */
-  --neon-red: #FF003C;        /* Votre Rouge (Electrique) */
-  --neon-blue: #0055FF;       /* Votre Bleu (Electrique) */
-  --neon-yellow: #FFE800;     /* Votre Jaune (Pac-Man) */
-  --neon-cyan: #00E5FF;       /* Cyan pour les accents et hovers */
-  
-  /* --- TYPOGRAPHIE --- */
+  --arcade-bg: #050505;     
+  --neon-red: #FF003C;        
+  --neon-blue: #0055FF;      
+  --neon-yellow: #FFE800;    
+  --neon-cyan: #00E5FF;     
   --font-arcade: 'Press Start 2P', system-ui, monospace;
-  
-  /* --- EFFETS --- */
   --glow-red: 0 0 10px rgba(255, 0, 60, 0.5);
   --glow-blue: 0 0 10px rgba(0, 85, 255, 0.5);
 }
 
-/* Reset de base */
 * {
   box-sizing: border-box;
 }
@@ -29,16 +22,14 @@ body {
   color: #FFFFFF;
   font-family: var(--font-arcade);
   overflow-x: hidden;
-  -webkit-font-smoothing: none; /* Pour garder l'aspect pixelisé net */
+  -webkit-font-smoothing: none; 
 }
 
-/* Global Typography */
 h1, h2, h3, h4, button, input, select {
   font-family: var(--font-arcade);
   text-transform: uppercase;
 }
 
-/* Liens par défaut */
 a {
   color: var(--neon-cyan);
   text-decoration: none;
